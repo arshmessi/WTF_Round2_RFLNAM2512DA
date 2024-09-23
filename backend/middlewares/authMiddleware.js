@@ -10,14 +10,23 @@ export const authMiddleware = (req, res, next) => {
     const user = jwt.verify(token, JWT_SECRET);
     req.user = user;
     next();
-  } catch {
-    res.status(403).json({ error: "Invalid token" });
+  } catch (error) {
+    return res
+      .status(403)
+      .json({ error: "Invalid token", details: error.message });
   }
 };
 
 export const adminMiddleware = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ error: "Access denied" });
+  try {
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      error: "An error occurred while verifying admin access",
+      details: error.message,
+    });
   }
-  next();
 };

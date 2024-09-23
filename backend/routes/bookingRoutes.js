@@ -5,6 +5,7 @@ import {
   deleteBooking,
 } from "../controllers/bookingController.js";
 import { checkEventAndUser } from "../middlewares/bookingMiddleware.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 

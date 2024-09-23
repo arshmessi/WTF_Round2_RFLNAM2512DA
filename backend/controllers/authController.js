@@ -51,10 +51,32 @@ export const registerAdmin = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: "Invalid credentials" });
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
+    res.json({ token });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "An error occurred during login", error });
   }
-  const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
-  res.json({ token });
+};
+
+export const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const admin = await User.findOne({ where: { email, isAdmin: true } });
+    if (!admin || !(await bcrypt.compare(password, admin.password))) {
+      return res.status(401).json({ error: "Invalid admin credentials" });
+    }
+    const token = jwt.sign({ id: admin.id, role: admin.role }, JWT_SECRET);
+    res.json({ token });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "An error occurred during admin login", error });
+  }
 };

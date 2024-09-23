@@ -1,6 +1,6 @@
-import sequelize from "./utils/db.js";
-import User from "./models/User.js";
-import bcrypt from "bcrypt";
+import sequelize from "./db.js";
+import User from "../models/User.js";
+import bcrypt from "bcryptjs";
 
 const seedDatabase = async () => {
   await sequelize.sync({ force: true });
@@ -15,7 +15,7 @@ const seedDatabase = async () => {
   // Create an admin user
   const adminUser = await User.create({
     email: "admin@example.com",
-    password: await bcrypt.hash("adminPassword123", 10),
+    password: await bcrypt.hash("admin123", 10),
     role: "admin", // Set role to 'admin'
   });
 
@@ -24,12 +24,4 @@ const seedDatabase = async () => {
   console.log(`Admin User: ${adminUser.email}`);
 };
 
-seedDatabase()
-  .then(() => {
-    console.log("Seeding completed.");
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("Error seeding database:", error);
-    process.exit(1);
-  });
+export default seedDatabase; // Add this line
