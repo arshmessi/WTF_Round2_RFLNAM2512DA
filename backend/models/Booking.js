@@ -5,9 +5,12 @@ import Event from "./Event.js";
 
 const Booking = sequelize.define("Booking", {
   numberOfTickets: { type: DataTypes.INTEGER, allowNull: false },
+  userId: { type: DataTypes.INTEGER, allowNull: false }, // Add userId field
+  eventId: { type: DataTypes.INTEGER, allowNull: false }, // Add eventId field
 });
 
-Booking.belongsTo(User);
-Booking.belongsTo(Event);
+// Associations
+Booking.belongsTo(User, { foreignKey: "userId" });
+Booking.belongsTo(Event, { foreignKey: "eventId" });
 
 export default Booking;
