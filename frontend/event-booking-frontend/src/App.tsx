@@ -9,6 +9,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import HomePage from "./pages/HomePage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminRegisterPage from "./pages/AdminRegisterPage";
+import EventManagementPage from "./pages/EventManagementPage";
 
 const App: React.FC = () => {
   return (
@@ -17,13 +18,12 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<HomePage />} /> {/* Home page route */}
           <Route path="/login" element={<LoginPage />} />{" "}
-          {/* User login route */}
           <Route path="/admin-login" element={<AdminLoginPage />} />{" "}
-          {/* Admin login route */}
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-register" element={<AdminRegisterPage />} />
+          <Route path="/event-management" element={<EventManagementPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

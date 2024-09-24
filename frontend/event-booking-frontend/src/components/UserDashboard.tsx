@@ -5,6 +5,7 @@ import {
   fetchUserBookings,
   fetchAvailableEvents,
   bookEvent,
+  deleteBooking,
 } from "../services/api";
 import EventBookingForm from "./EventBookingForm";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
@@ -70,6 +71,27 @@ const UserDashboard: React.FC = () => {
     }
   };
 
+  const handleCancelBooking = async (bookingId: number) => {
+    const token = sessionStorage.getItem("token"); // Get token from sessionStorage
+    if (!token) {
+      console.log("No user logged in or token missing");
+      return;
+    }
+
+    try {
+      await deleteBooking(bookingId, token); // Call deleteBooking API
+      // Refresh bookings after deleting
+      const bookingsResponse = await fetchUserBookings(token);
+      setBookings(bookingsResponse.data || []);
+    } catch (error) {
+      console.error("Failed to cancel booking:", error);
+    }
+  };
+  const handleLogout = () => {
+    sessionStorage.removeItem("token"); // Remove the token from sessionStorage
+    navigate("/"); // Redirect to the home page
+  };
+
   if (loadingBookings || loadingEvents) return <div>Loading...</div>;
 
   return (
@@ -94,17 +116,14 @@ const UserDashboard: React.FC = () => {
               }}
             >
               <p style={{ margin: 0 }}>
+                <strong>Booking ID:</strong> {booking.id} <br />
                 <strong>Event:</strong> {booking.Event.name} <br />
                 <strong>Date:</strong>{" "}
                 {new Date(booking.Event.date).toLocaleDateString()} <br />
                 <strong>Location:</strong> {booking.Event.location} <br />
                 <strong>Tickets:</strong> {booking.numberOfTickets} <br />
               </p>
-              <button
-                onClick={() => {
-                  /* Cancel booking logic */
-                }}
-              >
+              <button onClick={() => handleCancelBooking(booking.id)}>
                 Cancel
               </button>
             </div>
@@ -163,6 +182,10 @@ const UserDashboard: React.FC = () => {
           onBook={handleBooking}
         />
       )}
+      {/* Logout Button */}
+      <button onClick={handleLogout} style={{ marginTop: "20px" }}>
+        Logout
+      </button>
     </div>
   );
 };
