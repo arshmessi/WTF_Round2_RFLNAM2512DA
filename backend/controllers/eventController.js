@@ -11,8 +11,8 @@ export const getAllEvents = async (req, res) => {
   }
 };
 export const createEvent = async (req, res) => {
-  if (!req.user || !req.user.isAdmin) {
-    return res.status(403).json({ message: "Only admins can create events." });
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(405).json({ message: "Access denied." });
   }
 
   const { name, date, location, description, ticketPrice } = req.body;
@@ -23,9 +23,10 @@ export const createEvent = async (req, res) => {
       where: { name, date, location, description, ticketPrice },
     });
     if (existingEvent) {
-      return res
+      res
         .status(400)
         .json({ message: "Event with the same details already exists." });
+      return res;
     }
 
     // Create the event

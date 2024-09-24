@@ -3,25 +3,34 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 
 const seedDatabase = async () => {
-  await sequelize.sync({ force: true });
+  try {
+    // Ensure the database connection is established
+    await sequelize.authenticate();
+    console.log("Database connection established.");
 
-  // Create a regular user
-  const regularUser = await User.create({
-    email: "regularuser@example.com",
-    password: await bcrypt.hash("userPassword123", 10),
-    role: "user", // Assuming 'role' is a field indicating user type
-  });
+    // Sync the database, dropping existing tables if force is true
+    await sequelize.sync({ force: true });
 
-  // Create an admin user
-  const adminUser = await User.create({
-    email: "admin@example.com",
-    password: await bcrypt.hash("admin123", 10),
-    role: "admin", // Set role to 'admin'
-  });
+    // Create a regular user
+    const regularUser = await User.create({
+      email: "regularuser@example.com",
+      password: await bcrypt.hash("userPassword123", 10),
+      role: "user", // Assuming 'role' is a field indicating user type
+    });
 
-  console.log("Database seeded with users:");
-  console.log(`Regular User: ${regularUser.email}`);
-  console.log(`Admin User: ${adminUser.email}`);
+    // Create an admin user
+    const adminUser = await User.create({
+      email: "admin@example.com",
+      password: await bcrypt.hash("admin123", 10),
+      role: "admin", // Set role to 'admin'
+    });
+
+    console.log("Database seeded with users:");
+    console.log(`Regular User: ${regularUser.email}`);
+    console.log(`Admin User: ${adminUser.email}`);
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  }
 };
 
-export default seedDatabase; // Add this line
+export default seedDatabase; // Ensure you export the function

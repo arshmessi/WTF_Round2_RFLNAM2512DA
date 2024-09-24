@@ -5,12 +5,15 @@ import {
   deleteBooking,
 } from "../controllers/bookingController.js";
 import { checkEventAndUser } from "../middlewares/bookingMiddleware.js";
-import { authMiddleware } from "../middlewares/authMiddleware.js";
+import {
+  adminMiddleware,
+  authMiddleware,
+} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/book", checkEventAndUser, bookEvent);
-router.get("/mybookings", getUserBookings);
+router.get("/mybookings", authMiddleware, getUserBookings);
 router.delete("/bookings/:bookingId", authMiddleware, deleteBooking);
 
 export default router;

@@ -1,4 +1,5 @@
 import Booking from "../models/Booking.js";
+import Event from "../models/Event.js";
 
 export const bookEvent = async (req, res) => {
   const { eventId, numberOfTickets } = req.body;
@@ -62,22 +63,19 @@ export const getUserBookings = async (req, res) => {
 };
 
 export const deleteBooking = async (req, res) => {
-  const { bookingId } = req.params; // Assuming bookingId is passed as a URL parameter
+  const { bookingId } = req.params;
 
   try {
-    // Check if the booking exists
     const booking = await Booking.findByPk(bookingId);
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      return res.status(407).json({ error: "Booking not found" });
     }
 
-    // Check if the user is logged in
     const userId = req.user.id;
 
-    // Allow deletion if user is the owner of the booking or if the user is an admin
     if (booking.userId === userId || req.user.role === "admin") {
-      await booking.destroy(); // Delete the booking
-      return res.status(204).send(); // No content response
+      await booking.destroy();
+      return res.status(200).json({ message: "Booking deleted successfully." });
     } else {
       return res.status(403).json({
         error: "Forbidden: You do not have permission to delete this booking",

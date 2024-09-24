@@ -33,7 +33,7 @@
       "js"
     ],
     "testMatch": [
-      "**/api/tests/**/*.test.js"
+      "**/api/**/*.test.js"
     ],
     "globals": {
       "ts-jest": {

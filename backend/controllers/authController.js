@@ -23,8 +23,7 @@ export const register = async (req, res) => {
 export const registerAdmin = async (req, res) => {
   const { email, password } = req.body;
 
-  // Ensure the user is logged in and is an admin
-  if (!req.user || !req.user.isAdmin) {
+  if (!req.user || req.user.role !== "admin") {
     return res
       .status(403)
       .json({ message: "Only admins can register new admins." });
@@ -35,14 +34,13 @@ export const registerAdmin = async (req, res) => {
     const admin = await User.create({
       email,
       password: hashedPassword,
-      isAdmin: true,
+      role: "admin",
     });
     res.status(201).json({ message: "Admin registered successfully", admin });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
       return res.status(400).json({ message: "Admin already exists" });
     }
-    // Handle other potential errors
     return res
       .status(500)
       .json({ message: "An error occurred during admin registration", error });
@@ -54,7 +52,7 @@ export const login = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET);
     res.json({ token });
@@ -68,7 +66,7 @@ export const login = async (req, res) => {
 export const adminLogin = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const admin = await User.findOne({ where: { email, isAdmin: true } });
+    const admin = await User.findOne({ where: { email, role: "admin" } });
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
       return res.status(401).json({ error: "Invalid admin credentials" });
     }
