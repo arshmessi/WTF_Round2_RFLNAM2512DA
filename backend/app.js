@@ -5,9 +5,18 @@ import eventRoutes from "./routes/eventRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import seedDatabase from "./utils/seed.js";
 import User from "./models/User.js";
+import cors from "cors";
 
 const app = express();
 
+const corsOptions = {
+  origin: "http://localhost:3000", // Specify the allowed origin (your frontend URL)
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Allow credentials (cookies, authorization headers)
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
