@@ -202,5 +202,24 @@ describe("API Tests", () => {
         "Forbidden: You do not have permission to delete this booking"
       );
     });
+    it("should delete an event", async () => {
+      const res = await request(app)
+        .delete(`/api/events/${1}`)
+        .set("Authorization", `Bearer ${adminToken}`);
+      expect(res.statusCode).toBe(204); // No content
+    });
+
+    it("should modify an event", async () => {
+      const res = await request(app)
+        .put(`/api/events/${2}`)
+        .send({
+          name: "Updated Event",
+          date: "2024-12-01",
+          location: "New Location",
+        })
+        .set("Authorization", `Bearer ${adminToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("Event modified successfully.");
+    });
   });
 });

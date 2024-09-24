@@ -1,4 +1,5 @@
 import Event from "../models/Event.js";
+import Booking from "../models/Booking.js";
 
 export const getAllEvents = async (req, res) => {
   try {
@@ -42,5 +43,71 @@ export const createEvent = async (req, res) => {
     res
       .status(500)
       .json({ message: "An error occurred while creating the event", error });
+  }
+};
+
+export const deleteEvent = async (req, res) => {
+  const { eventId } = req.params;
+
+  try {
+    // Find the event using the eventId directly
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Allow deletion only for admins
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        error: "Forbidden: You do not have permission to delete this event",
+      });
+    }
+
+    await Booking.destroy({
+      where: {
+        eventId: eventId,
+      },
+    });
+
+    // Now delete the event
+    await event.destroy();
+
+    return res.status(204).send(); // No content response
+  } catch (error) {
+    console.error("Error deleting event:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to delete event", details: error.message });
+  }
+};
+
+export const modifyEvent = async (req, res) => {
+  const { eventId } = req.params;
+  const { name, date, location } = req.body; // Adjust as needed for your event model
+
+  try {
+    const event = await Event.findByPk(eventId);
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Allow modification only for admins
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        error: "Forbidden: You do not have permission to modify this event",
+      });
+    }
+
+    // Update the event details
+    event.name = name || event.name; // Only update fields provided
+    event.date = date || event.date;
+    event.location = location || event.location;
+
+    await event.save();
+    return res.status(200).json({ message: "Event modified successfully." });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Failed to modify event", details: error.message });
   }
 };
