@@ -1,4 +1,3 @@
-// src/components/UserDashboard.tsx
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -7,30 +6,51 @@ import {
   bookEvent,
   deleteBooking,
 } from "../services/api";
-import EventBookingForm from "./EventBookingForm";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { styled } from "@mui/system";
+import {
+  Card,
+  CardContent,
+  Button,
+  Typography,
+  Modal,
+  Box,
+  IconButton,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 
 const UserDashboard: React.FC = () => {
   const authContext = useContext(AuthContext);
   const [bookings, setBookings] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [tickets, setTickets] = useState<number>(1);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const navigate = useNavigate();
 
+  const TruncatedTypography = styled(Typography)({
+    display: "-webkit-box", // Display as a box to allow line clamping
+    overflow: "hidden", // Hide overflowed content
+    WebkitBoxOrient: "vertical", // Vertical box orientation
+    WebkitLineClamp: 5, // Limit to 5 lines (adjust as needed)
+    textOverflow: "ellipsis", // Add "..." at the end of the truncated text
+    wordWrap: "break-word", // Wrap long words to the next line
+    whiteSpace: "normal", // Allow the text to wrap within the box
+  });
   useEffect(() => {
     const loadBookings = async () => {
-      const token = sessionStorage.getItem("token"); // Get token from sessionStorage
+      const token = sessionStorage.getItem("token");
       if (!token) {
-        console.log("No user logged in or token missing");
-        alert("No user logged in. Redirecting to home page."); // Notify user
-        navigate("/"); // Redirect to home page
+        alert("No user logged in. Redirecting to home page.");
+        navigate("/");
         return;
       }
 
       try {
-        const bookingsResponse = await fetchUserBookings(token); // Use token from sessionStorage
+        const bookingsResponse = await fetchUserBookings(token);
         setBookings(bookingsResponse.data || []);
       } catch (error) {
         console.error("Failed to load user bookings:", error);
@@ -52,140 +72,248 @@ const UserDashboard: React.FC = () => {
 
     loadBookings();
     loadEvents();
-  }, [navigate]); // Include navigate in dependency array
+  }, [navigate]);
 
-  const handleBooking = async (eventId: string, tickets: number) => {
-    const token = sessionStorage.getItem("token"); // Get token from sessionStorage
-    if (!token) {
-      console.log("No user logged in or token missing");
+  const handleBooking = async () => {
+    const token = sessionStorage.getItem("token");
+    if (!token || !selectedEvent) {
       return;
     }
 
     try {
-      await bookEvent(eventId, tickets, token); // Use token from sessionStorage
-      // Refresh bookings after booking
-      const bookingsResponse = await fetchUserBookings(token); // Use token from sessionStorage
+      await bookEvent(selectedEvent.id, tickets, token);
+      const bookingsResponse = await fetchUserBookings(token);
       setBookings(bookingsResponse.data || []);
     } catch (error) {
       console.error("Failed to book event:", error);
+    } finally {
+      setOpenModal(false);
+      setTickets(1);
+      setSelectedEvent(null);
     }
   };
 
   const handleCancelBooking = async (bookingId: number) => {
-    const token = sessionStorage.getItem("token"); // Get token from sessionStorage
+    const token = sessionStorage.getItem("token");
     if (!token) {
-      console.log("No user logged in or token missing");
       return;
     }
 
     try {
-      await deleteBooking(bookingId, token); // Call deleteBooking API
-      // Refresh bookings after deleting
+      await deleteBooking(bookingId, token);
       const bookingsResponse = await fetchUserBookings(token);
       setBookings(bookingsResponse.data || []);
     } catch (error) {
       console.error("Failed to cancel booking:", error);
     }
   };
+
   const handleLogout = () => {
-    sessionStorage.removeItem("token"); // Remove the token from sessionStorage
-    navigate("/"); // Redirect to the home page
+    sessionStorage.removeItem("token");
+    navigate("/");
+  };
+
+  const handleEventClick = (event: any) => {
+    setSelectedEvent(event);
+    setOpenModal(true);
+    setTickets(1);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedEvent(null);
+    setTickets(1);
+  };
+
+  const truncateDescription = (text: string, charLimit: number): string => {
+    if (text.length > charLimit) {
+      return text.substring(0, charLimit) + "...";
+    }
+    return text;
   };
 
   if (loadingBookings || loadingEvents) return <div>Loading...</div>;
 
   return (
     <div>
-      <h2>Your Bookings</h2>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="h4">Your Bookings</Typography>
+        <Button
+          onClick={handleLogout}
+          style={{
+            color: "white",
+            backgroundColor: "red",
+            borderRadius: "5px",
+          }}
+        >
+          Logout
+        </Button>
+      </div>
+
       <div style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
         {bookings.length > 0 ? (
-          bookings.map((booking) => (
-            <div
-              key={booking.id}
-              style={{
-                display: "inline-block",
-                marginRight: "16px",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "8px",
-                width: "200px",
-                boxSizing: "border-box",
-                wordWrap: "break-word",
-                overflowWrap: "break-word",
-                height: "auto",
-              }}
-            >
-              <p style={{ margin: 0 }}>
-                <strong>Booking ID:</strong> {booking.id} <br />
-                <strong>Event:</strong> {booking.Event.name} <br />
-                <strong>Date:</strong>{" "}
-                {new Date(booking.Event.date).toLocaleDateString()} <br />
-                <strong>Location:</strong> {booking.Event.location} <br />
-                <strong>Tickets:</strong> {booking.numberOfTickets} <br />
-              </p>
-              <button onClick={() => handleCancelBooking(booking.id)}>
-                Cancel
-              </button>
-            </div>
-          ))
+          bookings.map((booking) => {
+            const event = events.find((event) => event.id === booking.eventId); // Assuming eventId is stored in booking
+            return (
+              <Card
+                key={booking.id}
+                sx={{
+                  display: "inline-block",
+                  marginRight: 2,
+                  width: "15%",
+                  height: "35%",
+                  boxShadow: 3,
+                  borderRadius: 2,
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6">Booking ID: {booking.id}</Typography>
+                  {event && (
+                    <>
+                      <Typography>Event: {event.name}</Typography>
+                      <Typography>
+                        Date: {new Date(event.date).toLocaleDateString()}
+                      </Typography>
+                      <Typography>Location: {event.location}</Typography>
+                      <Typography>
+                        Tickets: {booking.numberOfTickets}
+                      </Typography>
+                      <TruncatedTypography>
+                        Event Description: {event.description}
+                      </TruncatedTypography>
+                    </>
+                  )}
+                  <Button
+                    variant="contained"
+                    onClick={() => handleCancelBooking(booking.id)}
+                  >
+                    Cancel
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })
         ) : (
-          <p>No bookings found.</p>
+          <Typography>No bookings found.</Typography>
         )}
       </div>
 
-      <h2>Available Events</h2>
+      <Typography variant="h4">Available Events</Typography>
       <div style={{ overflowX: "auto", whiteSpace: "nowrap" }}>
         {events.length > 0 ? (
           events.map((event) => (
-            <div
+            <Card
               key={event.id}
-              onClick={() => setSelectedEvent(event.id)}
-              style={{
+              onClick={() => handleEventClick(event)}
+              sx={{
                 display: "inline-block",
-                marginRight: "16px",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                padding: "8px",
-                width: "200px",
-                boxSizing: "border-box",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                height: "auto",
+                marginRight: 2,
+                maxWidth: "20%",
+                height: "40%",
+                cursor: "pointer",
+                boxShadow: 4,
+                borderRadius: 2,
               }}
             >
-              <h3
-                style={{ margin: "0", fontSize: "1rem", whiteSpace: "normal" }}
-              >
-                {event.name}
-              </h3>
-              <p style={{ margin: 0, whiteSpace: "normal" }}>
-                <strong>Date:</strong>{" "}
-                {new Date(event.date).toLocaleDateString()} <br />
-                <strong>Location:</strong> {event.location} <br />
-                <strong>Description:</strong>{" "}
-                <span style={{ display: "block", whiteSpace: "normal" }}>
-                  {event.description}
-                </span>
-                <strong>Ticket Price:</strong> ${event.ticketPrice}
-              </p>
-            </div>
+              <CardContent>
+                <Typography variant="h6">{event.name}</Typography>
+                <Typography>
+                  Date: {new Date(event.date).toLocaleDateString()}
+                </Typography>
+                <Typography>Location: {event.location}</Typography>
+                <Typography>Price: ${event.ticketPrice}</Typography>
+                <TruncatedTypography>
+                  Description: {event.description}
+                </TruncatedTypography>
+              </CardContent>
+            </Card>
           ))
         ) : (
-          <p>No events available.</p>
+          <Typography>No events available.</Typography>
         )}
       </div>
 
-      {selectedEvent && (
-        <EventBookingForm
-          eventId={selectedEvent}
-          onClose={() => setSelectedEvent(null)}
-          onBook={handleBooking}
-        />
-      )}
-      {/* Logout Button */}
-      <button onClick={handleLogout} style={{ marginTop: "20px" }}>
-        Logout
-      </button>
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <Box
+          sx={{
+            backgroundColor: "white",
+            borderRadius: 2,
+            boxShadow: 3,
+            padding: 3,
+            maxWidth: "40%",
+            textAlign: "center",
+          }}
+        >
+          {selectedEvent && (
+            <>
+              <Typography variant="h6">{selectedEvent.name}</Typography>
+              <Typography>
+                Date: {new Date(selectedEvent.date).toLocaleDateString()}
+              </Typography>
+              <Typography>Location: {selectedEvent.location}</Typography>
+              <Typography>
+                Price per Ticket: ${selectedEvent.ticketPrice}
+              </Typography>
+
+              {/* Scrollable description section */}
+              <Box
+                sx={{
+                  maxHeight: "20em", // Approximate height for 10 lines (you can adjust this based on your font size)
+                  overflowY: "auto", // Enable vertical scrolling
+                  marginBottom: 2,
+                }}
+              >
+                <Typography>{selectedEvent.description}</Typography>
+              </Box>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 2,
+                }}
+              >
+                <IconButton
+                  onClick={() => setTickets((prev) => Math.max(1, prev - 1))}
+                >
+                  <RemoveIcon />
+                </IconButton>
+                <Typography variant="h6">{tickets}</Typography>
+                <IconButton onClick={() => setTickets((prev) => prev + 1)}>
+                  <AddIcon />
+                </IconButton>
+              </div>
+
+              {/* Total Price Calculation */}
+              <Typography variant="h6">
+                Total Price: ${selectedEvent.ticketPrice * tickets}
+              </Typography>
+
+              <Button
+                variant="contained"
+                onClick={handleBooking}
+                sx={{ marginRight: 1 }}
+              >
+                Book
+              </Button>
+              <Button variant="outlined" onClick={handleCloseModal}>
+                Close
+              </Button>
+            </>
+          )}
+        </Box>
+      </Modal>
     </div>
   );
 };

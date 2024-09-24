@@ -17,11 +17,11 @@ import {
   Container,
   IconButton,
   Stack,
+  Modal,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 interface Event {
   id: number;
@@ -40,20 +40,26 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   token,
 }) => {
   const [events, setEvents] = useState<Event[]>([]);
-  const [newEvent, setNewEvent] = useState({
+  const [newEvent, setNewEvent] = useState<Event>({
+    id: 0,
     name: "",
     date: "",
     location: "",
     description: "",
     ticketPrice: 0,
   });
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState({ name: "", location: "" });
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null); // Track the event being edited
-  const [isEditing, setIsEditing] = useState(false); // Control form display
-  const [isSearchActive, setIsSearchActive] = useState(false); // Track if search is active
-  const [noResultsFound, setNoResultsFound] = useState(false); // Track no results state
+  const [noResultsFound, setNoResultsFound] = useState(false);
+  const [focusedEvent, setFocusedEvent] = useState<Event | null>(null);
+  const [expandedDescription, setExpandedDescription] = useState<number | null>(
+    null
+  );
+  const [isSearchOngoing, setIsSearchOngoing] = useState(false); // New state for search
+  const [showCreateEventCard, setShowCreateEventCard] = useState(false); // State to show/hide create event card
 
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadEvents();
@@ -63,35 +69,35 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
     try {
       const response = await fetchAllEvents(token);
       setEvents(response.data);
-      setNoResultsFound(false); // Reset no results state
+      setNoResultsFound(false);
+      setIsSearchOngoing(false); // Reset search status on load
     } catch (error) {
       console.error("Failed to fetch events", error);
     }
   };
 
   const handleSearch = async () => {
+    setIsSearchOngoing(true); // Mark search as ongoing
     try {
       const response = await searchEvents(searchQuery);
       if (response.data.length === 0) {
-        setNoResultsFound(true); // Set no results found state
-        setEvents([]); // Clear events if none found
+        setNoResultsFound(true);
+        setEvents([]);
       } else {
         setEvents(response.data);
-        setNoResultsFound(false); // Reset no results state
+        setNoResultsFound(false);
       }
-      setIsSearchActive(true); // Set search active
     } catch (error) {
       setNoResultsFound(true);
-      setIsSearchActive(true);
       console.error("Search failed", error);
     }
   };
 
   const handleClearSearch = () => {
     setSearchQuery({ name: "", location: "" });
-    loadEvents(); // Reload all events
-    setIsSearchActive(false); // Reset search active
-    setNoResultsFound(false); // Reset no results found state
+    loadEvents();
+    setNoResultsFound(false);
+    setIsSearchOngoing(false); // Reset search status
   };
 
   const handleDelete = async (eventId: number) => {
@@ -108,20 +114,22 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       await createEvent(newEvent, token);
       loadEvents();
       setNewEvent({
+        id: 0,
         name: "",
         date: "",
         location: "",
         description: "",
         ticketPrice: 0,
       });
+      setShowCreateEventCard(false); // Hide the create event card after creation
     } catch (error) {
       console.error("Failed to create event", error);
     }
   };
 
   const handleEditClick = (event: Event) => {
-    setEditingEvent(event); // Set the event to be edited
-    setIsEditing(true); // Show the edit form
+    setEditingEvent(event);
+    setIsEditing(true);
   };
 
   const handleModifyEvent = async () => {
@@ -129,8 +137,8 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       try {
         await modifyEvent(editingEvent.id, editingEvent, token);
         loadEvents();
-        setEditingEvent(null); // Clear after editing
-        setIsEditing(false); // Hide edit form
+        setEditingEvent(null);
+        setIsEditing(false);
       } catch (error) {
         console.error("Failed to modify event", error);
       }
@@ -138,8 +146,8 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   };
 
   const handleCancelEdit = () => {
-    setEditingEvent(null); // Clear selected event
-    setIsEditing(false); // Hide edit form
+    setEditingEvent(null);
+    setIsEditing(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,12 +159,24 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   };
 
   const handleLogout = () => {
-    sessionStorage.clear(); // Clear session storage
-    navigate("/"); // Redirect to home page
+    sessionStorage.clear();
+    navigate("/");
   };
 
   const handleGoToDashboard = () => {
-    navigate("/admin-dashboard"); // Redirect to admin page
+    navigate("/admin-dashboard");
+  };
+
+  const handleEventClick = (event: Event) => {
+    setFocusedEvent(event); // Set the event to be focused
+  };
+
+  const handleCloseFocus = () => {
+    setFocusedEvent(null); // Clear the focused event
+  };
+
+  const toggleDescription = (eventId: number) => {
+    setExpandedDescription(expandedDescription === eventId ? null : eventId);
   };
 
   return (
@@ -165,7 +185,6 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
         Event Management
       </Typography>
 
-      {/* Buttons for Logout and Go to Dashboard */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="outlined"
@@ -180,7 +199,6 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
         </Button>
       </Box>
 
-      {/* Search Box */}
       <Box mb={4}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
@@ -214,7 +232,8 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
             >
               Search
             </Button>
-            {isSearchActive && (
+            {/* Show clear search button only when search is ongoing */}
+            {isSearchOngoing && (
               <Button
                 variant="outlined"
                 color="secondary"
@@ -229,17 +248,23 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
         </Grid>
       </Box>
 
-      {/* Event List */}
-      <Grid container spacing={3}>
-        {noResultsFound ? (
-          <Typography variant="body1">No such event found.</Typography>
-        ) : events.length ? (
-          events.map((event) => (
-            <Grid item xs={12} sm={6} md={4} key={event.id}>
-              <Card sx={{ height: "100%" }}>
+      {/* Horizontal Scroll Container for Events */}
+      <Box sx={{ overflowX: "auto", mb: 4 }}>
+        <Stack direction="row" spacing={2}>
+          {noResultsFound ? (
+            <Typography variant="body1">No such event found.</Typography>
+          ) : events.length ? (
+            events.map((event) => (
+              <Card
+                key={event.id}
+                sx={{ width: 300, flexShrink: 0 }} // Prevent card from shrinking
+                onClick={() => handleEventClick(event)} // Click event for focus
+              >
                 <CardContent>
                   <Typography variant="h6">{event.name}</Typography>
-                  <Typography variant="body2">{event.description}</Typography>
+                  <Typography variant="body2">
+                    {event.description.substring(0, 50)}...
+                  </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Location: {event.location}
                   </Typography>
@@ -252,121 +277,252 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
                   <Stack direction="row" spacing={1} mt={2}>
                     <IconButton
                       color="primary"
-                      onClick={() => handleEditClick(event)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(event);
+                      }}
                     >
                       <EditIcon />
                     </IconButton>
                     <IconButton
                       color="secondary"
-                      onClick={() => handleDelete(event.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(event.id);
+                      }}
                     >
                       <DeleteIcon />
                     </IconButton>
                   </Stack>
                 </CardContent>
               </Card>
-            </Grid>
-          ))
-        ) : (
-          <Typography variant="body1">Loading events...</Typography>
-        )}
-      </Grid>
-
-      {/* Create or Edit Event Form */}
-      <Box mt={4}>
-        <Typography variant="h5" gutterBottom>
-          {isEditing ? "Edit Event" : "Create New Event"}
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Event Name"
-              name="name"
-              variant="outlined"
-              value={
-                isEditing && editingEvent ? editingEvent.name : newEvent.name
-              }
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Date"
-              name="date"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              variant="outlined"
-              value={
-                isEditing && editingEvent ? editingEvent.date : newEvent.date
-              }
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Location"
-              name="location"
-              variant="outlined"
-              value={
-                isEditing && editingEvent
-                  ? editingEvent.location
-                  : newEvent.location
-              }
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Description"
-              name="description"
-              variant="outlined"
-              value={
-                isEditing && editingEvent
-                  ? editingEvent.description
-                  : newEvent.description
-              }
-              onChange={handleInputChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Ticket Price"
-              name="ticketPrice"
-              type="number"
-              variant="outlined"
-              value={
-                isEditing && editingEvent
-                  ? editingEvent.ticketPrice
-                  : newEvent.ticketPrice
-              }
-              onChange={handleInputChange}
-            />
-          </Grid>
-        </Grid>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={isEditing ? handleModifyEvent : handleCreateEvent}
-          sx={{ mt: 2 }}
-        >
-          {isEditing ? "Update Event" : "Create Event"}
-        </Button>
-        {isEditing && (
-          <Button
-            variant="outlined"
-            color="secondary"
-            onClick={handleCancelEdit}
-            sx={{ mt: 2, ml: 2 }}
-          >
-            Cancel
-          </Button>
-        )}
+            ))
+          ) : (
+            <Typography variant="body1">Loading events...</Typography>
+          )}
+        </Stack>
       </Box>
+
+      {/* Button to Create New Event */}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowCreateEventCard(true)} // Show create event card
+      >
+        Create Event
+      </Button>
+
+      {/* Create Event Card */}
+      <Modal
+        open={showCreateEventCard}
+        onClose={() => setShowCreateEventCard(false)}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Create Event
+          </Typography>
+          <TextField
+            label="Event Name"
+            name="name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newEvent.name}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Event Date"
+            name="date"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="date"
+            value={newEvent.date}
+            onChange={handleInputChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            label="Location"
+            name="location"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newEvent.location}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Description"
+            name="description"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={newEvent.description}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Ticket Price"
+            name="ticketPrice"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="number"
+            value={newEvent.ticketPrice}
+            onChange={handleInputChange}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateEvent}
+            sx={{ mt: 2 }}
+          >
+            Create Event
+          </Button>
+        </Box>
+      </Modal>
+
+      {/* Editing Event Card */}
+      <Modal open={isEditing} onClose={handleCancelEdit}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Modify Event
+          </Typography>
+          <TextField
+            label="Event Name"
+            name="name"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={editingEvent?.name}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Event Date"
+            name="date"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="date"
+            value={editingEvent?.date}
+            onChange={handleInputChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            label="Location"
+            name="location"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={editingEvent?.location}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Description"
+            name="description"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={editingEvent?.description}
+            onChange={handleInputChange}
+          />
+          <TextField
+            label="Ticket Price"
+            name="ticketPrice"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="number"
+            value={editingEvent?.ticketPrice}
+            onChange={handleInputChange}
+          />
+          <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleModifyEvent}
+            >
+              Save Changes
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleCancelEdit}
+            >
+              Cancel
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
+
+      {/* Focused Event Modal */}
+      <Modal open={Boolean(focusedEvent)} onClose={handleCloseFocus}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            // width: { xs: "75%", sm: 400 }, // Responsive width
+            border: "1px solid #ccc", // Light border color
+            borderRadius: "16px", // Rounded corners
+            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)", // Soft shadow for depth
+
+            bgcolor: "background.paper",
+            // boxShadow: 24,
+            p: 4,
+            maxWidth: "65%",
+            maxHeight: "80vh", // Set a maximum height for the modal
+            overflowY: "auto", // Enable vertical scrolling
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            {focusedEvent?.name}
+          </Typography>
+          <Typography variant="body2">{focusedEvent?.description}</Typography>
+          <Typography variant="body2" color="textSecondary">
+            Location: {focusedEvent?.location}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Date: {focusedEvent?.date}
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Price: ${focusedEvent?.ticketPrice}
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleCloseFocus}
+            sx={{ mt: 2 }}
+          >
+            Close
+          </Button>
+        </Box>
+      </Modal>
     </Container>
   );
 };
