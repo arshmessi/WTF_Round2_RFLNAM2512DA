@@ -1,48 +1,102 @@
-import React, { useState, useContext } from "react";
+// src/components/Login.tsx
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { TextField, Button, Typography, Alert } from "@mui/material";
+import { checkAuth } from "../services/api";
 
 const Login: React.FC = () => {
-  const authContext = useContext(AuthContext);
-  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { login } = useContext(AuthContext)!;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if the user is already logged in
+    const verifyUser = async () => {
+      const userResponse = await checkAuth();
+      if (userResponse) {
+        navigate("/user-dashboard"); // Redirect to user dashboard if logged in
+      }
+    };
+
+    verifyUser();
+  }, [navigate]); // Include navigate in dependency array
 
   const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      e.preventDefault();
-      await authContext?.login(username, password);
-      navigate("/user-dashboard"); // Adjust path as needed
-    } catch (err) {
-      setError("User login failed.");
+      await login(username, password);
+      const newToken = sessionStorage.getItem("token"); // Check sessionStorage directly
+      if (newToken) {
+        console.log("Token here is ", newToken);
+        navigate("/user-dashboard"); // Redirect to user dashboard after login
+      } else {
+        setErrorMessage("Incorrect username or password. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      setErrorMessage("Login failed. Please try again later.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        placeholder="Username"
-      />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-      />
-      <button type="submit">Login</button>
-      <button
-        type="button"
-        onClick={() => {
-          navigate("/register"); // Adjust path as needed
-        }}
-      >
-        Register
-      </button>
-    </form>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}
+    >
+      <div style={{ width: "100%", maxWidth: "400px" }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Login
+        </Typography>
+        {errorMessage && (
+          <Alert severity="error" style={{ marginBottom: "16px" }}>
+            {errorMessage}
+          </Alert>
+        )}
+        <form onSubmit={handleSubmit}>
+          <TextField
+            label="Username"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            style={{ marginTop: "16px" }}
+          >
+            Login
+          </Button>
+        </form>
+        <Button
+          onClick={() => navigate("/register")}
+          color="secondary"
+          fullWidth
+          style={{ marginTop: "16px" }}
+        >
+          Register
+        </Button>
+      </div>
+    </div>
   );
 };
 

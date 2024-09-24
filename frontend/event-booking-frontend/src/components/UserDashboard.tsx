@@ -1,3 +1,4 @@
+// src/components/UserDashboard.tsx
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import {
@@ -19,7 +20,8 @@ const UserDashboard: React.FC = () => {
 
   useEffect(() => {
     const loadBookings = async () => {
-      if (!authContext?.token) {
+      const token = sessionStorage.getItem("token"); // Get token from sessionStorage
+      if (!token) {
         console.log("No user logged in or token missing");
         alert("No user logged in. Redirecting to home page."); // Notify user
         navigate("/"); // Redirect to home page
@@ -27,7 +29,7 @@ const UserDashboard: React.FC = () => {
       }
 
       try {
-        const bookingsResponse = await fetchUserBookings(authContext.token);
+        const bookingsResponse = await fetchUserBookings(token); // Use token from sessionStorage
         setBookings(bookingsResponse.data || []);
       } catch (error) {
         console.error("Failed to load user bookings:", error);
@@ -49,20 +51,20 @@ const UserDashboard: React.FC = () => {
 
     loadBookings();
     loadEvents();
-  }, [authContext, navigate]); // Include navigate in dependency array
+  }, [navigate]); // Include navigate in dependency array
 
   const handleBooking = async (eventId: string, tickets: number) => {
-    if (!authContext?.token) {
+    const token = sessionStorage.getItem("token"); // Get token from sessionStorage
+    if (!token) {
       console.log("No user logged in or token missing");
       return;
     }
 
     try {
-      await bookEvent(eventId, tickets, authContext.token);
+      await bookEvent(eventId, tickets, token); // Use token from sessionStorage
       // Refresh bookings after booking
-      await fetchUserBookings(authContext.token).then((response) =>
-        setBookings(response.data || [])
-      );
+      const bookingsResponse = await fetchUserBookings(token); // Use token from sessionStorage
+      setBookings(bookingsResponse.data || []);
     } catch (error) {
       console.error("Failed to book event:", error);
     }

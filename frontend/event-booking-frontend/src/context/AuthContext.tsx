@@ -8,7 +8,7 @@ import {
 
 export interface AuthContextType {
   token: string | null; // Store only the token
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<string | void>;
   adminLogin: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
 }

@@ -77,7 +77,7 @@ describe("API Tests", () => {
         .set("Authorization", `Bearer ${userToken}`)
         .send({ email: "admin3@example.com", password: "adminPassword" });
       expect(res.statusCode).toBe(403);
-      expect(res.body.message).toBe("Only admins can register new admins.");
+      expect(res.body.error).toBe("Access denied");
     });
   });
 
