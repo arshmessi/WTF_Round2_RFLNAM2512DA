@@ -18,7 +18,7 @@ export const registerNewUser = async (email: string, password: string) => {
 
 export const registerNewAdmin = async (
   data: { email: string; password: string },
-  token: string
+  token: string | null
 ) => {
   return await axios.post(`${API_URL}/auth/register/admin`, data, {
     headers: { Authorization: `Bearer ${token}` },

@@ -6,7 +6,7 @@ import { TextField, Button, Typography, Alert } from "@mui/material";
 import { checkAuth } from "../services/api";
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { login } = useContext(AuthContext)!;
@@ -27,13 +27,13 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(username, password);
+      await login(email, password);
       const newToken = sessionStorage.getItem("token"); // Check sessionStorage directly
       if (newToken) {
         console.log("Token here is ", newToken);
         navigate("/user-dashboard"); // Redirect to user dashboard after login
       } else {
-        setErrorMessage("Incorrect username or password. Please try again.");
+        setErrorMessage("Incorrect Email or password. Please try again.");
       }
     } catch (error) {
       console.error("Login failed:", error);
@@ -61,12 +61,12 @@ const Login: React.FC = () => {
         )}
         <form onSubmit={handleSubmit}>
           <TextField
-            label="Username"
+            label="Email"
             variant="outlined"
             fullWidth
             margin="normal"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <TextField
             label="Password"

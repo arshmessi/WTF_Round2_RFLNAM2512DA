@@ -7,7 +7,8 @@ import UserDashboard from "./pages/UserDashboardPage";
 import AdminDashboard from "./pages/AdminDashboardPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import HomePage from "./pages/HomePage";
-import AdminLogin from "./pages/AdminLoginPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminRegisterPage from "./pages/AdminRegisterPage";
 
 const App: React.FC = () => {
   return (
@@ -17,11 +18,12 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} /> {/* Home page route */}
           <Route path="/login" element={<LoginPage />} />{" "}
           {/* User login route */}
-          <Route path="/admin-login" element={<AdminLogin />} />{" "}
+          <Route path="/admin-login" element={<AdminLoginPage />} />{" "}
           {/* Admin login route */}
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin-register" element={<AdminRegisterPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>
