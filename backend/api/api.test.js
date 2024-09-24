@@ -222,4 +222,67 @@ describe("API Tests", () => {
       expect(res.body.message).toBe("Event modified successfully.");
     });
   });
+
+  describe("Event Search API", () => {
+    console.log("Admin token in event search", adminToken);
+    it("should create an event", async () => {
+      const res = await request(app)
+        .post("/api/events")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          name: "Music Concert",
+          location: "Stadium",
+          date: "2024-10-01",
+          description: "A grand music concert",
+          ticketPrice: 50.0,
+        });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.name).toBe("Music Concert");
+    });
+
+    it("should create an event", async () => {
+      const res = await request(app)
+        .post("/api/events")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          name: "Tech Expo",
+          location: "Convention Center",
+          date: "2024-11-15",
+          description: "Technology exhibition",
+          ticketPrice: 20.0,
+        });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.name).toBe("Tech Expo");
+    });
+
+    it("should return events filtered by name", async () => {
+      const res = await request(app).get("/api/events?name=concert");
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].name).toContain("Concert");
+    });
+
+    it("should return events filtered by location", async () => {
+      const res = await request(app).get("/api/events?location=stadium");
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].location).toBe("Stadium");
+    });
+
+    it("should return events filtered by both name and location", async () => {
+      const res = await request(app).get(
+        "/api/events?name=concert&location=stadium"
+      );
+      expect(res.statusCode).toEqual(200);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].name).toContain("Concert");
+      expect(res.body[0].location).toBe("Stadium");
+    });
+
+    it("should return 404 if no events match the criteria", async () => {
+      const res = await request(app).get("/api/events?name=nonexistent");
+      expect(res.statusCode).toEqual(404);
+      expect(res.body.message).toBe("No events found matching the criteria.");
+    });
+  });
 });

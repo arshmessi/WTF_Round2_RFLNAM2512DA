@@ -1,16 +1,36 @@
 import Event from "../models/Event.js";
 import Booking from "../models/Booking.js";
+import { Op } from "sequelize";
 
 export const getAllEvents = async (req, res) => {
+  const { name, location } = req.query;
+
   try {
-    const events = await Event.findAll();
-    res.json(events);
+    console.log("Query params:", req.query);
+
+    // Build search criteria
+    const criteria = {};
+    if (name) criteria.name = { [Op.like]: `%${name}%` };
+    if (location) criteria.location = { [Op.like]: `%${location}%` };
+
+    console.log("Search criteria:", criteria);
+
+    // Fetch filtered events
+    const events = await Event.findAll({ where: criteria });
+
+    if (!events.length) {
+      return res
+        .status(404)
+        .json({ message: "No events found matching the criteria." });
+    }
+
+    res.status(200).json(events);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "An error occurred while fetching events", error });
+    console.error("Error retrieving events:", error.message); // Log the error message
+    res.status(500).json({ message: "Failed to retrieve events." });
   }
 };
+
 export const createEvent = async (req, res) => {
   if (!req.user || req.user.role !== "admin") {
     return res.status(405).json({ message: "Access denied." });

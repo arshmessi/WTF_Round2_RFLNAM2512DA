@@ -12,7 +12,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", getAllEvents);
+router.get("/", getAllEvents); // Supports query params ?name=concert&location=stadium
 router.post("/", authMiddleware, createEvent);
 router.delete("/:eventId", adminMiddleware, deleteEvent);
 router.put("/:eventId", adminMiddleware, modifyEvent);
