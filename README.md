@@ -8,6 +8,7 @@
    - [Running the Backend](#running-the-backend)
    - [Environment Variables](#environment-variables)
    - [Testing the Backend](#testing-the-backend)
+   - [API Testing](#api-testing)
    - [Unit Tests](#unit-tests)
 2. [Frontend Setup](#frontend-setup)
 
@@ -33,6 +34,7 @@ Before you begin, ensure you have the following installed:
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -58,9 +60,20 @@ JWT_SECRET=your_jwt_secret
 DATABASE_URL=sqlite::memory:  # Or a persistent file like sqlite://database.sqlite
 ```
 
+---
+
 ### Testing the Backend
 
-You can use the following **curl** commands to test the API functionality:
+There are two types of testing you can perform for the backend:
+
+- **API Testing** (using `curl` or Postman to test endpoints)
+- **Unit Testing** (using Jest and Supertest)
+
+---
+
+### API Testing
+
+You can use the following **curl** commands to test the API functionality. Each section demonstrates how to make HTTP requests to specific endpoints.
 
 #### 1. **Register User**
 
@@ -78,14 +91,31 @@ curl -X POST http://localhost:5000/api/auth/login \
 -d '{"email": "testuser@example.com", "password": "password123"}'
 ```
 
-#### 3. **Get All Events**
+#### 3. **Admin Registration**
+
+```bash
+curl -X POST http://localhost:5000/api/auth/register/admin \
+-H "Authorization: Bearer YOUR_JWT_TOKEN" \
+-H "Content-Type: application/json" \
+-d '{"email": "adminuser@example.com", "password": "adminpass123"}'
+```
+
+#### 4. **Admin Login**
+
+```bash
+curl -X POST http://localhost:5000/api/auth/login/admin \
+-H "Content-Type: application/json" \
+-d '{"email": "adminuser@example.com", "password": "adminpass123"}'
+```
+
+#### 5. **Get All Events**
 
 ```bash
 curl -X GET http://localhost:5000/api/events \
 -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
-#### 4. **Create an Event** (Admin only)
+#### 6. **Create an Event** (Admin only)
 
 ```bash
 curl -X POST http://localhost:5000/api/events \
@@ -94,19 +124,33 @@ curl -X POST http://localhost:5000/api/events \
 -d '{"name": "Concert", "date": "2024-10-01", "location": "Stadium", "description": "A grand music concert", "ticketPrice": 50.00}'
 ```
 
-#### 5. **Book Event**
+#### 7. **Delete an Event** (Admin only)
 
 ```bash
-curl -X POST http://localhost:5000/api/bookings \
+curl -X DELETE http://localhost:5000/api/events/{eventId} \
+-H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 8. **Book Event**
+
+```bash
+curl -X POST http://localhost:5000/api/bookings/book \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json" \
 -d '{"eventId": 1, "numberOfTickets": 2}'
 ```
 
-#### 6. **View Bookings**
+#### 9. **View Bookings**
 
 ```bash
-curl -X GET http://localhost:5000/api/bookings \
+curl -X GET http://localhost:5000/api/bookings/mybookings \
+-H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 10. **Delete Booking**
+
+```bash
+curl -X DELETE http://localhost:5000/api/bookings/bookings/{bookingId} \
 -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -114,17 +158,25 @@ curl -X GET http://localhost:5000/api/bookings \
 
 ### Unit Tests
 
-You can write unit tests using **Jest** or **Mocha** (I’ll use **Jest** for this example). Install the necessary testing libraries:
+Unit tests verify the core functionality of each API endpoint using **Jest** and **Supertest**. You can run the unit tests to make sure your routes and services behave as expected.
+
+#### 1. Install Testing Dependencies
+
+Make sure you have installed **Jest** and **Supertest**:
 
 ```bash
 npm install --save-dev jest supertest
 ```
 
-#### Example Unit Test for User Authentication (`/tests/auth.test.js`):
+#### 2. Writing Unit Tests
+
+Below is an example of unit tests for authentication and booking API routes:
+
+- **Authentication Test Example** (`/tests/auth.test.js`):
 
 ```js
 import request from "supertest";
-import app from "../app.js";
+import app from "../app.js"; // Assuming your app.js contains the express app
 
 describe("Auth API", () => {
   it("should register a user", async () => {
@@ -147,13 +199,54 @@ describe("Auth API", () => {
 });
 ```
 
-#### Running Tests
+- **Booking Test Example** (`/tests/booking.test.js`):
 
-To run the unit tests, use:
+```js
+import request from "supertest";
+import app from "../app.js";
+
+describe("Booking API", () => {
+  let token;
+
+  // Before running tests, login as a user
+  beforeAll(async () => {
+    const res = await request(app)
+      .post("/api/auth/login")
+      .send({ email: "testuser@example.com", password: "password123" });
+
+    token = res.body.token; // Capture token for authenticated requests
+  });
+
+  it("should book an event", async () => {
+    const res = await request(app)
+      .post("/api/bookings/book")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ eventId: 1, numberOfTickets: 2 });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty("bookingId");
+  });
+
+  it("should get user bookings", async () => {
+    const res = await request(app)
+      .get("/api/bookings/mybookings")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toBeInstanceOf(Array);
+  });
+});
+```
+
+#### 3. Running Unit Tests
+
+To run your unit tests, simply use:
 
 ```bash
 npm run test
 ```
+
+Jest will automatically pick up and execute all tests in the `/tests/` directory.
 
 ---
 
