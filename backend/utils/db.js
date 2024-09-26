@@ -3,7 +3,7 @@ import { DATABASE_URL } from "../config/config.js";
 
 const sequelize = new Sequelize(DATABASE_URL, {
   dialect: "sqlite",
-  storage: "./database.sqlite", // Persistent storage
+  storage: "./tmp/database.sqlite", // Persistent storage
   logging: true,
 });
 

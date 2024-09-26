@@ -34,7 +34,7 @@ const startServer = async () => {
       console.log("Database seeded.");
     }
 
-    app.listen(5000, () => console.log("Server running on port 5000"));
+    app.listen(6969, () => console.log("Server running on port 6969"));
   } catch (error) {
     console.error("Error initializing database or server:", error);
   }
