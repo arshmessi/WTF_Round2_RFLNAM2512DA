@@ -7,6 +7,7 @@ import seedDatabase from "./utils/seed.js";
 import User from "./models/User.js";
 import cors from "cors";
 
+const PORT = process.env.PORT || 5000; // Default to 5000 for local testing
 const app = express();
 
 const corsOptions = {
@@ -34,7 +35,7 @@ const startServer = async () => {
       console.log("Database seeded.");
     }
 
-    app.listen(6969, () => console.log("Server running on port 6969"));
+    app.listen(PORT, () => console.log("Server running on port ", PORT));
   } catch (error) {
     console.error("Error initializing database or server:", error);
   }
