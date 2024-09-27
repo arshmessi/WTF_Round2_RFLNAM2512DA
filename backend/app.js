@@ -9,9 +9,19 @@ import cors from "cors";
 
 const PORT = process.env.PORT || 5000; // Default to 5000 for local testing
 const app = express();
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://bookmyevent-e42ce.web.app",
+];
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Specify the allowed origin (your frontend URL)
+  origin: function (origin, callback) {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true, // Allow credentials (cookies, authorization headers)
 };
