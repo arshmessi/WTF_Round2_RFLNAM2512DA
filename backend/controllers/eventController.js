@@ -20,7 +20,7 @@ export const getAllEvents = async (req, res) => {
 
     if (!events.length) {
       return res
-        .status(404)
+        .status(411)
         .json({ message: "No events found matching the criteria." });
     }
 
