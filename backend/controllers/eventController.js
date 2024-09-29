@@ -36,27 +36,36 @@ export const createEvent = async (req, res) => {
     return res.status(405).json({ message: "Access denied." });
   }
 
-  const { name, date, location, description, ticketPrice } = req.body;
+  const {
+    name,
+    startDate,
+    endDate,
+    location,
+    description,
+    ticketPrice,
+    category,
+  } = req.body;
 
   try {
     // Check for existing event with the same details
     const existingEvent = await Event.findOne({
-      where: { name, date, location, description, ticketPrice },
+      where: { name, startDate, location, description, ticketPrice, category },
     });
     if (existingEvent) {
-      res
+      return res
         .status(400)
         .json({ message: "Event with the same details already exists." });
-      return res;
     }
 
     // Create the event
     const event = await Event.create({
       name,
-      date,
+      startDate,
+      endDate,
       location,
       description,
       ticketPrice,
+      category,
     });
     res.status(201).json(event);
   } catch (error) {
@@ -103,7 +112,15 @@ export const deleteEvent = async (req, res) => {
 
 export const modifyEvent = async (req, res) => {
   const { eventId } = req.params;
-  const { name, date, location, description, ticketPrice } = req.body; // Adjust as needed for your event model
+  const {
+    name,
+    startDate,
+    endDate,
+    location,
+    description,
+    ticketPrice,
+    category,
+  } = req.body;
 
   try {
     const event = await Event.findByPk(eventId);
@@ -120,10 +137,12 @@ export const modifyEvent = async (req, res) => {
 
     // Update the event details
     event.name = name || event.name; // Only update fields provided
-    event.date = date || event.date;
+    event.startDate = startDate || event.startDate;
+    event.endDate = endDate || event.endDate;
     event.location = location || event.location;
     event.description = description || event.description;
     event.ticketPrice = ticketPrice || event.ticketPrice;
+    event.category = category || event.category; // Update category
 
     await event.save();
     return res.status(200).json({ message: "Event modified successfully." });
