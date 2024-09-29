@@ -279,9 +279,9 @@ describe("API Tests", () => {
       expect(res.body[0].location).toBe("Stadium");
     });
 
-    it("should return 404 if no events match the criteria", async () => {
+    it("should return 411 if no events match the criteria", async () => {
       const res = await request(app).get("/api/events?name=nonexistent");
-      expect(res.statusCode).toEqual(404);
+      expect(res.statusCode).toEqual(411);
       expect(res.body.message).toBe("No events found matching the criteria.");
     });
   });

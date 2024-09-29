@@ -103,7 +103,7 @@ export const deleteEvent = async (req, res) => {
 
 export const modifyEvent = async (req, res) => {
   const { eventId } = req.params;
-  const { name, date, location } = req.body; // Adjust as needed for your event model
+  const { name, date, location, description, ticketPrice } = req.body; // Adjust as needed for your event model
 
   try {
     const event = await Event.findByPk(eventId);
@@ -122,6 +122,8 @@ export const modifyEvent = async (req, res) => {
     event.name = name || event.name; // Only update fields provided
     event.date = date || event.date;
     event.location = location || event.location;
+    event.description = description || event.description;
+    event.ticketPrice = ticketPrice || event.ticketPrice;
 
     await event.save();
     return res.status(200).json({ message: "Event modified successfully." });
