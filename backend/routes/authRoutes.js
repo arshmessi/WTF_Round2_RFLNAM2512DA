@@ -3,6 +3,7 @@ import { register, login } from "../controllers/authController.js";
 import {
   adminMiddleware,
   authMiddleware,
+  userDetails,
 } from "../middlewares/authMiddleware.js";
 import { registerAdmin, adminLogin } from "../controllers/authController.js";
 
@@ -13,6 +14,7 @@ router.post("/login", login);
 router.post("/register/admin", adminMiddleware, registerAdmin);
 router.post("/login/admin", adminLogin);
 
+router.get("/user/details", authMiddleware, userDetails);
 router.get("/check-auth", authMiddleware, (req, res) => {
   res.status(200).json({ loggedIn: true, user: req.user });
 });
@@ -20,4 +22,5 @@ router.get("/check-auth", authMiddleware, (req, res) => {
 router.get("/check-admin", adminMiddleware, (req, res) => {
   res.status(200).json({ loggedIn: true, user: req.user });
 });
+
 export default router;
