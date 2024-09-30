@@ -84,9 +84,9 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       setNoResultsFound(true);
     }
   };
-  useEffect(() => {
-    loadEvents();
-  }, []);
+  // useEffect(() => {
+  loadEvents();
+  // }, []);
 
   const handleSearch = async () => {
     setIsSearchOngoing(true); // Mark search as ongoing
