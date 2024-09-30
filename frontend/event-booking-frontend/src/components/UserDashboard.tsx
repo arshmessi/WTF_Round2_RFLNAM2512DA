@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-// import { AuthContext } from "../context/AuthContext";
 import eventImages from "../utils/images";
-// import { EventCategory } from "../utils/eventType";
 import {
   fetchUserBookings,
   fetchAvailableEvents,
@@ -28,11 +26,11 @@ interface Event {
   id: string;
   name: string;
   location: string;
-  startDate: string; // Updated to use startDate
-  endDate: string; // Updated to use endDate
+  startDate: string; // Contains date and time
+  endDate: string; // Contains date and time
   ticketPrice: number;
-  category: keyof typeof eventImages; // Match the event category with your images
-  description?: string; // Add description if it's included in your event data
+  category: keyof typeof eventImages;
+  description?: string;
 }
 
 const TruncatedTypography = styled(Typography)({
@@ -46,7 +44,6 @@ const TruncatedTypography = styled(Typography)({
 });
 
 const UserDashboard: React.FC = () => {
-  // const authContext = useContext(AuthContext);
   const [bookings, setBookings] = useState<any[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
@@ -144,9 +141,16 @@ const UserDashboard: React.FC = () => {
   const calculateDuration = (startDate: string, endDate: string): string => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    const duration = Math.abs(end.getTime() - start.getTime());
-    const days = Math.ceil(duration / (1000 * 3600 * 24));
-    return `${days} day${days !== 1 ? "s" : ""}`;
+    const durationInMillis = end.getTime() - start.getTime();
+
+    const days = Math.floor(durationInMillis / (1000 * 3600 * 24));
+    const hours = Math.floor(
+      (durationInMillis % (1000 * 3600 * 24)) / (1000 * 3600)
+    );
+
+    return `${days} day${days !== 1 ? "s" : ""} ${hours} hour${
+      hours !== 1 ? "s" : ""
+    }`;
   };
 
   const handleUserProfileClick = () => {
@@ -170,11 +174,7 @@ const UserDashboard: React.FC = () => {
           onClick={handleUserProfileClick}
           variant="contained"
           color="primary"
-          sx={{
-            position: "absolute",
-            top: 16,
-            right: 16,
-          }}
+          sx={{ position: "absolute", top: 16, right: 16 }}
         >
           User Profile
         </Button>
@@ -201,14 +201,14 @@ const UserDashboard: React.FC = () => {
                   <CardContent>
                     {event && (
                       <img
-                        src={eventImages[event.category] || eventImages.other} // Default image if category not found
+                        src={eventImages[event.category] || eventImages.other}
                         alt={event.name}
                         style={{
                           height: "140px",
                           width: "100%",
                           objectFit: "cover",
                           borderRadius: "4px",
-                        }} // Adjust styling as needed
+                        }}
                       />
                     )}
                     <Typography variant="h6">
@@ -218,12 +218,10 @@ const UserDashboard: React.FC = () => {
                       <>
                         <Typography>Event: {event.name}</Typography>
                         <Typography>
-                          Start Date:{" "}
-                          {new Date(event.startDate).toLocaleDateString()}
+                          Start: {new Date(event.startDate).toLocaleString()}
                         </Typography>
                         <Typography>
-                          End Date:{" "}
-                          {new Date(event.endDate).toLocaleDateString()}
+                          End: {new Date(event.endDate).toLocaleString()}
                         </Typography>
                         <Typography>
                           Duration:{" "}
@@ -272,10 +270,10 @@ const UserDashboard: React.FC = () => {
                     cursor: "pointer",
                     transition: "transform 0.3s, background-color 0.3s",
                     backgroundColor:
-                      selectedEvent?.id === event.id ? "#2C2C2C" : "inherit", // Lighter shade for selected
+                      selectedEvent?.id === event.id ? "#2C2C2C" : "inherit",
                     "&:hover": {
                       transform: "scale(1.03)",
-                      backgroundColor: "#383838", // Lighter shade for hover
+                      backgroundColor: "#383838",
                     },
                   }}
                 >
@@ -296,11 +294,10 @@ const UserDashboard: React.FC = () => {
                     <Typography variant="h6">{event.name}</Typography>
                     <Typography>Location: {event.location}</Typography>
                     <Typography>
-                      Start Date:{" "}
-                      {new Date(event.startDate).toLocaleDateString()}
+                      Start: {new Date(event.startDate).toLocaleString()}
                     </Typography>
                     <Typography>
-                      End Date: {new Date(event.endDate).toLocaleDateString()}
+                      End: {new Date(event.endDate).toLocaleString()}
                     </Typography>
                     <Typography>Price: ${event.ticketPrice}</Typography>
                     <TruncatedTypography>
@@ -336,6 +333,10 @@ const UserDashboard: React.FC = () => {
           </Typography>
           <Typography>
             Price per Ticket: ${selectedEvent?.ticketPrice}
+          </Typography>
+          <Typography sx={{ marginTop: 2 }}>
+            Total Price: $
+            {selectedEvent ? selectedEvent.ticketPrice * tickets : 0}
           </Typography>
           <Box display="flex" alignItems="center" marginTop={2}>
             <IconButton onClick={() => setTickets(Math.max(1, tickets - 1))}>
