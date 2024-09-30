@@ -11,6 +11,10 @@
    - [API Testing](#api-testing)
    - [Unit Tests](#unit-tests)
 2. [Frontend Setup](#frontend-setup)
+   - [Running the Frontend](#running-the-frontend)
+3. [Deployment](#deployment)
+4. [Notes](#notes)
+5. [Features](#features)
 
 ---
 
@@ -121,7 +125,7 @@ curl -X GET http://localhost:5000/api/events \
 curl -X POST http://localhost:5000/api/events \
 -H "Authorization: Bearer YOUR_JWT_TOKEN" \
 -H "Content-Type: application/json" \
--d '{"name": "Concert", "date": "2024-10-01", "location": "Stadium", "description": "A grand music concert", "ticketPrice": 50.00}'
+-d '{"name": "Concert", "startDate": "2024-10-01T00:00:00Z", "endDate": "2024-10-01T02:00:00Z", "location": "Stadium", "description": "A grand music concert", "ticketPrice": 50.00, "category": "Music"}'
 ```
 
 #### 7. **Delete an Event** (Admin only)
@@ -185,7 +189,7 @@ describe("Auth API", () => {
       .send({ email: "testuser@example.com", password: "password123" });
 
     expect(res.statusCode).toEqual(201);
-    expect(res.body).toHaveProperty("email");
+    expect(res.body).toHaveProperty("message", "User registered successfully");
   });
 
   it("should login a user", async () => {
@@ -223,8 +227,8 @@ describe("Booking API", () => {
       .set("Authorization", `Bearer ${token}`)
       .send({ eventId: 1, numberOfTickets: 2 });
 
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toHaveProperty("bookingId");
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty("numberOfTickets", 2);
   });
 
   it("should get user bookings", async () => {
@@ -252,4 +256,50 @@ Jest will automatically pick up and execute all tests in the `/tests/` directory
 
 ## Frontend Setup
 
+### Running the Frontend
+
+To run the frontend part of the application, follow these steps:
+
+1. Navigate to the frontend directory:
+
+   ```bash
+   cd frontend/event-booking-frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```bash
+   npm start
+   ```
+
+   The frontend application should be running on `http://localhost:3000`.
+
+### Local Testing
+
+While testing the application locally, ensure you change the backend API link to `http://localhost:5000` in your frontend code instead of the deployed link.
+
 ---
+
+## Deployment
+
+The frontend is deployed on **Firebase**, while the backend is hosted on **Heroku**.
+
+---
+
+## Notes
+
+- The **Admin Dashboard** is not meant to be used directly; please use the **User Dashboard** for admin purposes.
+- The UI is different across various pages as it is still under development and not finalized.
+
+---
+
+## Features
+
+In this project, I have implemented a dynamic event listing feature utilizing React, along with Material-UI components for a polished user interface. The event cards display essential information such as the event name, location, start date, duration, and ticket price, fetched asynchronously from an API through the `fetchAvailableEvents` and `searchEvents` functions. The design includes a search functionality that allows users to filter events by name and location, with a responsive layout achieved through a grid system. Each event card utilizes a styled Material-UI card, which includes hover effects for improved interactivity. Additionally, I have integrated snackbar notifications to provide user feedback in case of errors during data fetching. The background and styling of the page have been customized for a
+modern and appealing look.

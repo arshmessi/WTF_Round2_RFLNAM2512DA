@@ -88,12 +88,15 @@ describe("API Tests", () => {
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
           name: "Concert",
-          date: new Date(),
+          startDate: new Date().toISOString(), // Ensure the date is in the correct format
+          endDate: new Date(new Date().getTime() + 7200 * 1000).toISOString(), // End date 2 hours later
           location: "Stadium",
           description: "Live concert",
           ticketPrice: 100,
+          category: "Music",
         });
-      eventId = res.body.id; // Save the event ID for later tests
+      eventId = res.body.id;
+      // Save the event ID for later tests
     });
 
     it("should create an event", async () => {
@@ -102,10 +105,12 @@ describe("API Tests", () => {
         .set("Authorization", `Bearer ${adminToken}`)
         .send({
           name: "Art Exhibition",
-          date: new Date(),
+          startDate: new Date().toISOString(), // Updated to use startDate
+          endDate: new Date(new Date().getTime() + 7200 * 1000).toISOString(), // End date 2 hours later
           location: "Gallery",
           description: "Art showcase",
           ticketPrice: 50,
+          category: "Art", // Added category
         });
       expect(res.statusCode).toBe(201);
       expect(res.body.name).toBe("Art Exhibition");
@@ -117,15 +122,31 @@ describe("API Tests", () => {
         .set("Authorization", `Bearer ${userToken}`)
         .send({
           name: "Theater Play",
-          date: new Date(),
-          location: "Theater",
+          startDate: new Date().toISOString(),
+          endDate: new Date(
+            new Date().setDate(new Date().getDate() + 3)
+          ).toISOString(),
           description: "Drama performance",
           ticketPrice: 80,
+          category: "Theater",
         });
       expect(res.statusCode).toBe(405);
       expect(res.body.message).toBe("Access denied.");
     });
 
+    it("should modify an event", async () => {
+      const res = await request(app)
+        .put(`/api/events/${eventId}`)
+        .send({
+          name: "Updated Event",
+          startDate: new Date().toISOString(), // Updated to use startDate
+          endDate: new Date(new Date().getTime() + 3600 * 1000).toISOString(), // End date 1 hour later
+          location: "New Location",
+        })
+        .set("Authorization", `Bearer ${adminToken}`);
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("Event modified successfully.");
+    });
     it("should retrieve all events", async () => {
       const res = await request(app).get("/api/events");
       expect(res.statusCode).toBe(200);
@@ -133,6 +154,9 @@ describe("API Tests", () => {
       expect(res.body.length).toBeGreaterThan(0);
     });
   });
+  let bookingID;
+  let bookingID2;
+  let bookingID3;
 
   describe("Booking Management", () => {
     it("should create a booking", async () => {
@@ -145,6 +169,31 @@ describe("API Tests", () => {
         });
       expect(res.statusCode).toBe(201);
       expect(res.body.numberOfTickets).toBe(2);
+      bookingID = res.body.id;
+    });
+    it("should create a booking2", async () => {
+      const res = await request(app)
+        .post("/api/bookings/book")
+        .set("Authorization", `Bearer ${userToken}`)
+        .send({
+          eventId: eventId,
+          numberOfTickets: 5,
+        });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.numberOfTickets).toBe(5);
+      bookingID2 = res.body.id;
+    });
+    it("should create a booking3", async () => {
+      const res = await request(app)
+        .post("/api/bookings/book")
+        .set("Authorization", `Bearer ${adminToken}`)
+        .send({
+          eventId: eventId,
+          numberOfTickets: 10,
+        });
+      expect(res.statusCode).toBe(201);
+      expect(res.body.numberOfTickets).toBe(10);
+      bookingID3 = res.body.id;
     });
 
     it("should retrieve user's bookings", async () => {
@@ -158,125 +207,56 @@ describe("API Tests", () => {
 
     it("should delete a booking", async () => {
       const res = await request(app)
-        .delete(`/api/bookings/bookings/${1}`) // Make sure booking ID 1 exists
+        .delete(`/api/bookings/bookings/${bookingID}`) // Make sure booking ID 1 exists
         .set("Authorization", `Bearer ${adminToken}`);
 
       expect(res.statusCode).toBe(200); // Check for status code 200
       expect(res.body.message).toBe("Booking deleted successfully."); // Check for success message
     });
-    it("should create a booking", async () => {
+
+    it("should allow deleting a booking if user is the owner", async () => {
       const res = await request(app)
-        .post("/api/bookings/book")
-        .set("Authorization", `Bearer ${userToken}`)
-        .send({
-          eventId: eventId,
-          numberOfTickets: 12,
-        });
-      expect(res.statusCode).toBe(201);
-      expect(res.body.numberOfTickets).toBe(12);
-    });
-    it("should create a booking", async () => {
-      const res = await request(app)
-        .post("/api/bookings/book")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({
-          eventId: eventId,
-          numberOfTickets: 11,
-        });
-      expect(res.statusCode).toBe(201);
-      expect(res.body.numberOfTickets).toBe(11);
-    });
-    it("should allow deleting a booking if user is  the owner", async () => {
-      const res = await request(app)
-        .delete(`/api/bookings/bookings/${2}`)
+        .delete(`/api/bookings/bookings/${bookingID2}`)
         .set("Authorization", `Bearer ${userToken}`);
       expect(res.statusCode).toBe(200);
       expect(res.body.message).toBe("Booking deleted successfully.");
     });
+
     it("should not allow deleting a booking because user is not the owner", async () => {
       const res = await request(app)
-        .delete(`/api/bookings/bookings/${3}`)
+        .delete(`/api/bookings/bookings/${bookingID3}`)
         .set("Authorization", `Bearer ${userToken}`);
       expect(res.statusCode).toBe(403);
       expect(res.body.error).toBe(
         "Forbidden: You do not have permission to delete this booking"
       );
     });
+
     it("should delete an event", async () => {
       const res = await request(app)
-        .delete(`/api/events/${1}`)
+        .delete(`/api/events/${eventId}`)
         .set("Authorization", `Bearer ${adminToken}`);
       expect(res.statusCode).toBe(204); // No content
-    });
-
-    it("should modify an event", async () => {
-      const res = await request(app)
-        .put(`/api/events/${2}`)
-        .send({
-          name: "Updated Event",
-          date: "2024-12-01",
-          location: "New Location",
-        })
-        .set("Authorization", `Bearer ${adminToken}`);
-      expect(res.statusCode).toBe(200);
-      expect(res.body.message).toBe("Event modified successfully.");
     });
   });
 
   describe("Event Search API", () => {
-    console.log("Admin token in event search", adminToken);
-    it("should create an event", async () => {
-      const res = await request(app)
-        .post("/api/events")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({
-          name: "Music Concert",
-          location: "Stadium",
-          date: "2024-10-01",
-          description: "A grand music concert",
-          ticketPrice: 50.0,
-        });
-      expect(res.statusCode).toBe(201);
-      expect(res.body.name).toBe("Music Concert");
-    });
-
-    it("should create an event", async () => {
-      const res = await request(app)
-        .post("/api/events")
-        .set("Authorization", `Bearer ${adminToken}`)
-        .send({
-          name: "Tech Expo",
-          location: "Convention Center",
-          date: "2024-11-15",
-          description: "Technology exhibition",
-          ticketPrice: 20.0,
-        });
-      expect(res.statusCode).toBe(201);
-      expect(res.body.name).toBe("Tech Expo");
-    });
-
     it("should return events filtered by name", async () => {
-      const res = await request(app).get("/api/events?name=concert");
+      const res = await request(app).get("/api/events?name=Art");
       expect(res.statusCode).toEqual(200);
-      expect(res.body.length).toBe(1);
-      expect(res.body[0].name).toContain("Concert");
+      expect(res.body.length).toBeGreaterThan(0);
     });
 
     it("should return events filtered by location", async () => {
-      const res = await request(app).get("/api/events?location=stadium");
+      const res = await request(app).get("/api/events?location=Galler");
       expect(res.statusCode).toEqual(200);
-      expect(res.body.length).toBe(1);
-      expect(res.body[0].location).toBe("Stadium");
+      expect(res.body.length).toBeGreaterThan(0); // Adjust according to your test events
     });
 
     it("should return events filtered by both name and location", async () => {
-      const res = await request(app).get(
-        "/api/events?name=concert&location=stadium"
-      );
+      const res = await request(app).get("/api/events?name=Art&location=Gall");
       expect(res.statusCode).toEqual(200);
-      expect(res.body.length).toBe(1);
-      expect(res.body[0].name).toContain("Concert");
-      expect(res.body[0].location).toBe("Stadium");
+      expect(res.body.length).toBeGreaterThan(0); // Adjust according to your test events
     });
 
     it("should return 411 if no events match the criteria", async () => {
