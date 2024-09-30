@@ -23,16 +23,31 @@ interface Event {
   startDate: string;
   endDate: string;
   ticketPrice: number;
+  description: string;
   category: keyof typeof eventImages;
 }
 
 const StyledCard = styled(Card)(() => ({
   transition: "transform 0.3s, box-shadow 0.3s",
+  position: "relative",
   "&:hover": {
     transform: "scale(1.05)",
     boxShadow: "0 4px 30px rgba(0, 0, 0, 0.2)",
   },
 }));
+
+const CardFront = styled(CardContent)({
+  display: "flex",
+  flexDirection: "column",
+});
+
+const CardBack = styled(CardContent)({
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: "#1E1E1E", // Background for the back of the card
+  color: "#F5F5DC", // Text color for the back of the card
+  height: "100%",
+});
 
 const calculateDuration = (startDate: string, endDate: string) => {
   const start = new Date(startDate);
@@ -67,6 +82,7 @@ const HomePage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [noResultsFound, setNoResultsFound] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [flippedCardId, setFlippedCardId] = useState<string | null>(null); // Track flipped card ID
   const navigate = useNavigate();
 
   const loadEvents = async () => {
@@ -109,6 +125,10 @@ const HomePage: React.FC = () => {
     navigate("/admin-login");
   };
 
+  const toggleCardFlip = (eventId: string) => {
+    setFlippedCardId((prev) => (prev === eventId ? null : eventId)); // Toggle the flipped card
+  };
+
   useEffect(() => {
     loadEvents();
     document.body.style.margin = "0";
@@ -123,7 +143,7 @@ const HomePage: React.FC = () => {
         padding: "20px",
         backgroundColor: "#1A1B1B",
         color: "#F5F5DC",
-        position: "relative", // Added position: relative for the container
+        position: "relative",
       }}
     >
       {/* Top-right corner buttons */}
@@ -193,37 +213,57 @@ const HomePage: React.FC = () => {
       <Grid container spacing={2}>
         {events.map((event) => (
           <Grid item xs={12} sm={6} md={4} lg={3} key={event.id}>
-            <StyledCard>
-              <img
-                src={eventImages[event.category] || eventImages.other}
-                alt={event.name}
-                style={{ height: "140px", width: "100%", objectFit: "cover" }}
-              />
-              <CardContent>
-                <Typography variant="h5">{event.name}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  <LocationOnIcon style={{ marginRight: "5px" }} />
-                  {event.location}
-                </Typography>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <AccessTimeIcon style={{ marginRight: "5px" }} />
-                  <Typography variant="body2">
-                    Start Date: {new Date(event.startDate).toLocaleDateString()}
+            <StyledCard onClick={() => toggleCardFlip(event.id)}>
+              {flippedCardId === event.id ? (
+                <CardBack
+                  sx={{
+                    maxHeight: "30vh", // Set max height to 60%
+                    overflowY: "auto", // Enable vertical scrolling
+                    marginTop: 2,
+                    marginBottom: 2,
+                  }}
+                >
+                  <Typography variant="h6">Event Description</Typography>
+
+                  <Typography>{event.description}</Typography>
+                </CardBack>
+              ) : (
+                <CardFront>
+                  <img
+                    src={eventImages[event.category] || eventImages.other}
+                    alt={event.name}
+                    style={{
+                      height: "140px",
+                      width: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <Typography variant="h5">{event.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    <LocationOnIcon style={{ marginRight: "5px" }} />
+                    {event.location}
                   </Typography>
-                </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <Typography variant="body2">
-                    Duration:{" "}
-                    {calculateDuration(event.startDate, event.endDate)}
-                  </Typography>
-                </div>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <MonetizationOnIcon style={{ marginRight: "5px" }} />
-                  <Typography variant="body2">
-                    ${event.ticketPrice.toFixed(2)}
-                  </Typography>
-                </div>
-              </CardContent>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <AccessTimeIcon style={{ marginRight: "5px" }} />
+                    <Typography variant="body2">
+                      Start Date:{" "}
+                      {new Date(event.startDate).toLocaleDateString()}
+                    </Typography>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body2">
+                      Duration:{" "}
+                      {calculateDuration(event.startDate, event.endDate)}
+                    </Typography>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <MonetizationOnIcon style={{ marginRight: "5px" }} />
+                    <Typography variant="body2">
+                      ${event.ticketPrice.toFixed(2)}
+                    </Typography>
+                  </div>
+                </CardFront>
+              )}
             </StyledCard>
           </Grid>
         ))}

@@ -117,6 +117,7 @@ const UserDashboard: React.FC = () => {
       const bookingsResponse = await fetchUserBookings(token);
       setBookings(bookingsResponse.data || []);
     } catch (error) {
+      setBookings([]);
       console.error("Failed to cancel booking:", error);
     }
   };
