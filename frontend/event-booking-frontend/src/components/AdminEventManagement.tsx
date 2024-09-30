@@ -73,10 +73,6 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadEvents();
-  }, []);
-
   const loadEvents = async () => {
     try {
       const response = await fetchAllEvents(token);
@@ -203,9 +199,9 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
     setFocusedEvent(null); // Clear the focused event
   };
 
-  const toggleDescription = (eventId: number) => {
-    setExpandedDescription(expandedDescription === eventId ? null : eventId);
-  };
+  // const toggleDescription = (eventId: number) => {
+  //   setExpandedDescription(expandedDescription === eventId ? null : eventId);
+  // };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>

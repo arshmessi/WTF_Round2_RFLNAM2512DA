@@ -46,7 +46,7 @@ const TruncatedTypography = styled(Typography)({
 });
 
 const UserDashboard: React.FC = () => {
-  const authContext = useContext(AuthContext);
+  // const authContext = useContext(AuthContext);
   const [bookings, setBookings] = useState<any[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);

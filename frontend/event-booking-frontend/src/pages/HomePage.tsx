@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { fetchAvailableEvents, searchEvents } from "../services/api";
-import { EventCategory } from "../utils/eventType";
 import eventImages from "../utils/images";
 import {
   Grid,

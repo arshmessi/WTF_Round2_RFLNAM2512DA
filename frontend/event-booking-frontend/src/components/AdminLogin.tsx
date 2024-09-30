@@ -37,7 +37,7 @@ const AdminLogin: React.FC = () => {
 
     try {
       await adminLogin(email, password);
-      const newToken = sessionStorage.getItem("token");
+      // const newToken = sessionStorage.getItem("token");
       const adminCheck = await checkAdminAuth();
       if (adminCheck) {
         navigate("/admin-dashboard");
