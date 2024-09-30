@@ -68,7 +68,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   // const [expandedDescription, setExpandedDescription] = useState<number | null>(
   //   null
   // );
-  const [errorMessage, setErrorMessage] = useState<string>(""); // State for error messages
+  // const [errorMessage, setErrorMessage] = useState<string>(""); // State for error messages
   const [isSearchOngoing, setIsSearchOngoing] = useState(false); // New state for search
   const [showCreateEventCard, setShowCreateEventCard] = useState(false); // State to show/hide create event card
 
@@ -530,7 +530,11 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               label="Start Date"
               variant="outlined"
               name="startDate" // Updated field
-              value={editingEvent.startDate} // Updated field
+              value={
+                editingEvent.startDate
+                  ? new Date(editingEvent.startDate).toISOString().slice(0, 16)
+                  : new Date()
+              } // Updated field
               onChange={handleInputChange}
               fullWidth
               margin="normal"
@@ -543,7 +547,11 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               label="End Date"
               variant="outlined"
               name="endDate" // New field for end date
-              value={editingEvent.endDate} // New field for end date
+              value={
+                editingEvent.endDate
+                  ? new Date(editingEvent.endDate).toISOString().slice(0, 16)
+                  : new Date()
+              } // New field for end date
               onChange={handleInputChange}
               fullWidth
               margin="normal"
@@ -636,11 +644,23 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               width: 400,
               bgcolor: "background.paper",
               boxShadow: 24,
+              color: "white",
               p: 4,
             }}
           >
             <Typography variant="h6">{focusedEvent.name}</Typography>
-            <Typography variant="body2">{focusedEvent.description}</Typography>
+            <Box
+              sx={{
+                maxHeight: "60%", // Set max height to 60%
+                overflowY: "auto", // Enable vertical scrolling
+                marginTop: 2,
+                marginBottom: 2,
+              }}
+            >
+              <Typography variant="body2">
+                {focusedEvent.description}
+              </Typography>
+            </Box>
             <Typography variant="body2">
               Location: {focusedEvent.location}
             </Typography>
