@@ -325,6 +325,7 @@ const UserDashboard: React.FC = () => {
             transform: "translate(-50%, -50%)",
             width: 400,
             bgcolor: "background.paper",
+            color: "white",
             boxShadow: 24,
             p: 4,
             borderRadius: 2,

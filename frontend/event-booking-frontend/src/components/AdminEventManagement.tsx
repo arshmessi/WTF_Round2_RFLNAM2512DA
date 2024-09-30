@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   fetchAllEvents,
   createEvent,
@@ -84,6 +84,9 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       setNoResultsFound(true);
     }
   };
+  useEffect(() => {
+    loadEvents();
+  }, []);
 
   const handleSearch = async () => {
     setIsSearchOngoing(true); // Mark search as ongoing
@@ -205,7 +208,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom sx={{ color: "white" }}>
         Event Management
       </Typography>
 
