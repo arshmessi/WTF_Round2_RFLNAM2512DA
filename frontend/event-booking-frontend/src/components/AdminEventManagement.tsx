@@ -34,8 +34,8 @@ import { useNavigate } from "react-router-dom";
 interface Event {
   id: number;
   name: string;
-  startDate: string; // Updated field
-  endDate: string; // New field for end date
+  startDate: Date; // Updated field
+  endDate: Date; // New field for end date
   location: string;
   description: string;
   ticketPrice: number;
@@ -53,8 +53,8 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   const [newEvent, setNewEvent] = useState<Event>({
     id: 0,
     name: "",
-    startDate: "", // Updated field
-    endDate: "", // New field for end date
+    startDate: new Date(), // Updated field
+    endDate: new Date(), // New field for end date
     location: "",
     description: "",
     ticketPrice: 0,
@@ -68,6 +68,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   // const [expandedDescription, setExpandedDescription] = useState<number | null>(
   //   null
   // );
+  const [errorMessage, setErrorMessage] = useState<string>(""); // State for error messages
   const [isSearchOngoing, setIsSearchOngoing] = useState(false); // New state for search
   const [showCreateEventCard, setShowCreateEventCard] = useState(false); // State to show/hide create event card
 
@@ -137,6 +138,19 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
     }
   };
 
+  const resetNewEventFields = () => {
+    setNewEvent({
+      id: 0,
+      name: "",
+      startDate: new Date(), // Set to default or empty state
+      endDate: new Date(), // Set to default or empty state
+      location: "",
+      description: "",
+      ticketPrice: 0,
+      category: EventCategory.other,
+    });
+  };
+
   const handleCreateEvent = async () => {
     try {
       await createEvent(newEvent, token);
@@ -144,8 +158,8 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       setNewEvent({
         id: 0,
         name: "",
-        startDate: "", // Updated field
-        endDate: "", // New field for end date
+        startDate: new Date(), // Updated field
+        endDate: new Date(), // New field for end date
         location: "",
         description: "",
         ticketPrice: 0,
@@ -181,10 +195,30 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
     if (isEditing && editingEvent) {
-      setEditingEvent({ ...editingEvent, [e.target.name]: e.target.value });
+      setEditingEvent((prev) => {
+        if (!prev) return null; // Handle the case when prev is null
+
+        // Create a new object based on the previous event, while updating ticketPrice if needed
+        const updatedEvent: Event = {
+          ...prev,
+          [name]: name === "ticketPrice" && parseFloat(value) < 0 ? 0 : value,
+        };
+
+        return updatedEvent;
+      });
     } else {
-      setNewEvent({ ...newEvent, [e.target.name]: e.target.value });
+      setNewEvent((prev) => {
+        // Create a new object based on the previous newEvent, while updating ticketPrice if needed
+        const updatedNewEvent: Event = {
+          ...(prev || {}), // Use previous event or empty object if prev is null
+          [name]: name === "ticketPrice" && parseFloat(value) < 0 ? 0 : value,
+        };
+
+        return updatedNewEvent;
+      });
     }
   };
 
@@ -306,10 +340,11 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
                     Location: {event.location}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Start Date: {event.startDate} {/* Updated field */}
+                    {`Start Date: ${event.startDate}`} {/* Updated field */}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    End Date: {event.endDate} {/* New field for end date */}
+                    {`End Date: ${event.endDate}`}{" "}
+                    {/* New field for end date */}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Price: ${event.ticketPrice}
@@ -365,7 +400,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              type="date"
+              type="datetime-local"
               InputLabelProps={{
                 shrink: true,
               }}
@@ -378,7 +413,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              type="date"
+              type="datetime-local"
               InputLabelProps={{
                 shrink: true,
               }}
@@ -410,6 +445,11 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               fullWidth
               margin="normal"
               type="number"
+              slotProps={{
+                htmlInput: {
+                  min: 0, // Prevent negative prices
+                },
+              }} // Prevent negative prices
             />
             <FormControl fullWidth margin="normal">
               <InputLabel id="category-label">Category</InputLabel>
@@ -448,14 +488,18 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
           </CardContent>
         </Card>
       )}
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setShowCreateEventCard(true)}
-      >
-        Create New Event
-      </Button>
+      {!showCreateEventCard && (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {
+            resetNewEventFields();
+            setShowCreateEventCard(true);
+          }}
+        >
+          Create New Event
+        </Button>
+      )}
 
       {/* Edit Event Modal */}
       {isEditing && editingEvent && (
@@ -490,7 +534,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              type="date"
+              type="datetime-local"
               InputLabelProps={{
                 shrink: true,
               }}
@@ -503,7 +547,7 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               onChange={handleInputChange}
               fullWidth
               margin="normal"
-              type="date"
+              type="datetime-local"
               InputLabelProps={{
                 shrink: true,
               }}
@@ -535,6 +579,11 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               fullWidth
               margin="normal"
               type="number"
+              slotProps={{
+                htmlInput: {
+                  min: 0, // Prevent negative prices
+                },
+              }} // Prevent negative prices
             />
             <FormControl fullWidth margin="normal">
               <InputLabel id="category-label-edit">Category</InputLabel>
@@ -596,10 +645,10 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
               Location: {focusedEvent.location}
             </Typography>
             <Typography variant="body2">
-              Start Date: {focusedEvent.startDate}
+              {`Start Date: ${focusedEvent.startDate}`}
             </Typography>
             <Typography variant="body2">
-              End Date: {focusedEvent.endDate}
+              {`End Date: ${focusedEvent.endDate}`}
             </Typography>
             <Typography variant="body2">
               Price: ${focusedEvent.ticketPrice}

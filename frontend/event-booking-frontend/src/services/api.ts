@@ -84,8 +84,8 @@ export const fetchAllEvents = async (token: string) => {
 export const createEvent = async (
   eventData: {
     name: string;
-    startDate: string;
-    endDate: string;
+    startDate: Date;
+    endDate: Date;
     description: string;
     ticketPrice: number;
     category: string;
@@ -102,8 +102,8 @@ export const modifyEvent = async (
   eventId: number,
   eventData: {
     name?: string;
-    startDate?: string;
-    endDate?: string;
+    startDate?: Date;
+    endDate?: Date;
     location?: string;
     description?: string;
     ticketPrice?: number;
