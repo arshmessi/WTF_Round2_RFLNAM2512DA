@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   fetchAllEvents,
   createEvent,
@@ -84,9 +84,12 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
       setNoResultsFound(true);
     }
   };
-  // useEffect(() => {
-  loadEvents();
-  // }, []);
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    loadEvents();
+  }, []);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   const handleSearch = async () => {
     setIsSearchOngoing(true); // Mark search as ongoing
