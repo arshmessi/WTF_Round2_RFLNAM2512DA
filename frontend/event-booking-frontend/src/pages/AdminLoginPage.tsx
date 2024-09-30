@@ -1,12 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import AdminLogin from "../components/AdminLogin";
-import { Container } from "@mui/material";
 
 const AdminLoginPage: React.FC = () => {
+  useEffect(() => {
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.body.style.backgroundColor = "#1E1E1E";
+  }, []);
   return (
-    <Container maxWidth="sm">
+    <div>
       <AdminLogin />
-    </Container>
+    </div>
   );
 };
 

@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL =
+  "https://murmuring-headland-34820-123c1fb063f5.herokuapp.com/api";
 
 // User authentication
 export const login = async (email: string, password: string) => {
@@ -11,8 +12,23 @@ export const adminLogin = async (email: string, password: string) => {
   return await axios.post(`${API_URL}/auth/login/admin`, { email, password });
 };
 
-export const registerNewUser = async (email: string, password: string) => {
-  return await axios.post(`${API_URL}/auth/register`, { email, password });
+// src/services/api.ts
+
+export const registerNewUser = async (
+  email: string,
+  password: string,
+  details: {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    bio?: string;
+  } // Include details
+) => {
+  return await axios.post(`${API_URL}/auth/register`, {
+    email,
+    password,
+    details,
+  });
 };
 
 export const registerNewAdmin = async (
@@ -43,6 +59,13 @@ export const bookEvent = async (
   );
 };
 
+// Fetch user details (requires token)
+export const fetchUserDetails = async (token: string) => {
+  return await axios.get(`${API_URL}/auth/user/details`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+};
+
 // Events
 
 // Fetch available events (no token needed)
@@ -61,10 +84,11 @@ export const fetchAllEvents = async (token: string) => {
 export const createEvent = async (
   eventData: {
     name: string;
-    date: string;
-    location: string;
+    startDate: string;
+    endDate: string;
     description: string;
     ticketPrice: number;
+    category: string;
   },
   token: string
 ) => {
@@ -78,10 +102,12 @@ export const modifyEvent = async (
   eventId: number,
   eventData: {
     name?: string;
-    date?: string;
+    startDate?: string;
+    endDate?: string;
     location?: string;
     description?: string;
     ticketPrice?: number;
+    category?: string;
   },
   token: string
 ) => {

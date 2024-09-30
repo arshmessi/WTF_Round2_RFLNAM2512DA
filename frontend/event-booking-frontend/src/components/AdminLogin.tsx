@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { checkAdminAuth } from "../services/api";
-import { AuthContext } from "../context/AuthContext"; // Import the custom useAuth hook
+import { AuthContext } from "../context/AuthContext";
 import {
   TextField,
   Button,
@@ -15,12 +15,11 @@ const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // New loading state
+  const [loading, setLoading] = useState(false);
   const { adminLogin } = useContext(AuthContext)!;
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if the user is already logged in
     const verifyAdmin = async () => {
       const userResponse = await checkAdminAuth();
       if (userResponse) {
@@ -29,28 +28,26 @@ const AdminLogin: React.FC = () => {
     };
 
     verifyAdmin();
-  }, [navigate]); // Include navigate in dependency array
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Clear previous error
-    setLoading(true); // Set loading state to true
+    setError(null);
+    setLoading(true);
 
     try {
       await adminLogin(email, password);
       const newToken = sessionStorage.getItem("token");
       const adminCheck = await checkAdminAuth();
       if (adminCheck) {
-        console.log("AdminToken here is ", newToken);
-        navigate("/admin-dashboard"); // Redirect to user dashboard after login
+        navigate("/admin-dashboard");
       } else {
         setError("Incorrect Email or password. Please try again.");
       }
     } catch (err) {
-      console.error("Admin Login failed:", err);
       setError("Admin Login failed. Please check your credentials.");
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -60,15 +57,25 @@ const AdminLogin: React.FC = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        height: "100vh",
+        minHeight: "100vh", // Use minHeight to ensure the background covers the entire viewport
+        backgroundColor: "#1A1B1B",
+        color: "#E0C090",
       }}
     >
       <div style={{ width: "100%", maxWidth: "400px" }}>
-        <Typography variant="h4" align="center" gutterBottom>
+        <Typography
+          variant="h4"
+          align="center"
+          gutterBottom
+          style={{ color: "#E0C090" }}
+        >
           Admin Login
         </Typography>
         {error && (
-          <Alert severity="error" style={{ marginBottom: "16px" }}>
+          <Alert
+            severity="error"
+            style={{ marginBottom: "16px", color: "#E0C090" }}
+          >
             {error}
           </Alert>
         )}
@@ -81,6 +88,24 @@ const AdminLogin: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            slotProps={{
+              input: {
+                style: { color: "#E0C090" }, // Input text color
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E0C090", // Border color
+                },
+                "&:hover fieldset": {
+                  borderColor: "#E0C090", // Hover border color
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#E0C090", // Focused border color
+                },
+              },
+            }}
           />
           <TextField
             label="Password"
@@ -91,6 +116,24 @@ const AdminLogin: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            slotProps={{
+              input: {
+                style: { color: "#E0C090" }, // Input text color
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E0C090", // Border color
+                },
+                "&:hover fieldset": {
+                  borderColor: "#E0C090", // Hover border color
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#E0C090", // Focused border color
+                },
+              },
+            }}
           />
           <Button
             type="submit"
@@ -100,7 +143,11 @@ const AdminLogin: React.FC = () => {
             style={{ marginTop: "16px" }}
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : "Login"}
+            {loading ? (
+              <CircularProgress size={24} style={{ color: "#E0C090" }} />
+            ) : (
+              "Login"
+            )}
           </Button>
         </form>
       </div>

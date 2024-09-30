@@ -10,6 +10,10 @@ const EventManagementPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
+    document.body.style.backgroundColor = "#1B1C1C";
+
     const verifyAdmin = async () => {
       const isAuthenticated = await checkAdminAuth();
       if (!isAuthenticated) {

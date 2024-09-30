@@ -22,7 +22,7 @@ const Login: React.FC = () => {
     };
 
     verifyUser();
-  }, [navigate]); // Include navigate in dependency array
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,14 +48,24 @@ const Login: React.FC = () => {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
+        backgroundColor: "#1A1B1B", // Dark background color
+        color: "#E0C090", // Pale yellow/sepia text color
       }}
     >
       <div style={{ width: "100%", maxWidth: "400px" }}>
-        <Typography variant="h4" align="center" gutterBottom>
+        <Typography
+          variant="h4"
+          align="center"
+          gutterBottom
+          style={{ color: "#E0C090" }}
+        >
           Login
         </Typography>
         {errorMessage && (
-          <Alert severity="error" style={{ marginBottom: "16px" }}>
+          <Alert
+            severity="error"
+            style={{ marginBottom: "16px", color: "#E0C090" }}
+          >
             {errorMessage}
           </Alert>
         )}
@@ -67,6 +77,25 @@ const Login: React.FC = () => {
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            InputProps={{
+              style: { color: "#E0C090" }, // Input text color
+            }}
+            InputLabelProps={{
+              style: { color: "#E0C090" }, // Input label color
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E0C090", // Border color
+                },
+                "&:hover fieldset": {
+                  borderColor: "#E0C090", // Hover border color
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#E0C090", // Focused border color
+                },
+              },
+            }}
           />
           <TextField
             label="Password"
@@ -76,6 +105,25 @@ const Login: React.FC = () => {
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              style: { color: "#E0C090" }, // Input text color
+            }}
+            InputLabelProps={{
+              style: { color: "#E0C090" }, // Input label color
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E0C090", // Border color
+                },
+                "&:hover fieldset": {
+                  borderColor: "#E0C090", // Hover border color
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#E0C090", // Focused border color
+                },
+              },
+            }}
           />
           <Button
             type="submit"
@@ -91,7 +139,7 @@ const Login: React.FC = () => {
           onClick={() => navigate("/register")}
           color="secondary"
           fullWidth
-          style={{ marginTop: "16px" }}
+          style={{ marginTop: "16px", color: "#E0C090" }} // Button text color
         >
           Register
         </Button>

@@ -8,7 +8,6 @@ import {
   checkAdminAuth,
 } from "../services/api";
 import { useNavigate } from "react-router-dom";
-
 import {
   Button,
   Container,
@@ -20,7 +19,7 @@ import {
   Modal,
 } from "@mui/material";
 
-const UserDashboard: React.FC = () => {
+const AdminDashboard: React.FC = () => {
   const authContext = useContext(AuthContext);
   const [bookings, setBookings] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
@@ -43,7 +42,6 @@ const UserDashboard: React.FC = () => {
       verifyAdmin();
       const token = sessionStorage.getItem("token");
       if (!token) {
-        console.log("No user logged in or token missing");
         alert("No user logged in. Redirecting to home page.");
         navigate("/");
         return;
@@ -76,7 +74,6 @@ const UserDashboard: React.FC = () => {
   const handleBooking = async (eventId: string, tickets: number) => {
     const token = sessionStorage.getItem("token");
     if (!token) {
-      console.log("No user logged in or token missing");
       return;
     }
 
@@ -93,7 +90,6 @@ const UserDashboard: React.FC = () => {
   const handleCancelBooking = async (bookingId: number) => {
     const token = sessionStorage.getItem("token");
     if (!token) {
-      console.log("No user logged in or token missing");
       return;
     }
 
@@ -296,4 +292,4 @@ const UserDashboard: React.FC = () => {
   );
 };
 
-export default UserDashboard;
+export default AdminDashboard;

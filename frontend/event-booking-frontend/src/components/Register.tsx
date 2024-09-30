@@ -7,24 +7,34 @@ import { Box, TextField, Button, Typography, Alert } from "@mui/material";
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null); // Handle error messages
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [bio, setBio] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Reset error before new attempt
-    setSuccessMessage(null); // Reset success message
+    setError(null);
+    setSuccessMessage(null);
+
+    const details = {
+      firstName,
+      lastName,
+      phoneNumber,
+      bio,
+    };
 
     try {
-      const response = await registerNewUser(email, password);
+      const response = await registerNewUser(email, password, details);
       setSuccessMessage(response.data.message);
-      // On success, redirect to login with success message
       setTimeout(() => {
         navigate("/login", {
           state: { message: "User registered successfully. Please log in." },
         });
-      }, 2000); // Redirect after 2 seconds to show message
+      }, 2000);
     } catch (err: any) {
       if (err.response && err.response.status === 400) {
         setError("User already exists. Please try logging in.");
@@ -47,9 +57,16 @@ const Register: React.FC = () => {
         width: "300px",
         margin: "auto",
         mt: 4,
+        bgcolor: "#1E1E1E", // Change background color to white or other light color
+        color: "#333", // Change text color to dark gray
+        padding: 3,
+        borderRadius: 2,
+        boxShadow: 2, // Add some shadow for depth
       }}
     >
-      <Typography variant="h4" textAlign="center">
+      <Typography variant="h4" textAlign="center" color="#1976d2">
+        {" "}
+        {/* Change to your primary color */}
         Register
       </Typography>
 
@@ -72,8 +89,48 @@ const Register: React.FC = () => {
         required
         fullWidth
       />
+      <TextField
+        label="First Name"
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Last Name"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Phone Number"
+        value={phoneNumber}
+        onChange={(e) => setPhoneNumber(e.target.value)}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Bio"
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+        fullWidth
+        multiline
+        rows={3}
+      />
 
-      <Button type="submit" variant="contained" color="primary" fullWidth>
+      <Button
+        type="submit"
+        variant="contained"
+        color="primary" // Use the primary color defined in your theme
+        fullWidth
+        sx={{
+          bgcolor: "#1976d2", // Set button color to primary
+          "&:hover": {
+            bgcolor: "#115293", // Darken on hover
+          },
+        }}
+      >
         Register
       </Button>
 
