@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   fetchAllEvents,
   createEvent,
@@ -65,9 +65,9 @@ const AdminEventManagement: React.FC<AdminEventManagementProps> = ({
   const [searchQuery, setSearchQuery] = useState({ name: "", location: "" });
   const [noResultsFound, setNoResultsFound] = useState(false);
   const [focusedEvent, setFocusedEvent] = useState<Event | null>(null);
-  const [expandedDescription, setExpandedDescription] = useState<number | null>(
-    null
-  );
+  // const [expandedDescription, setExpandedDescription] = useState<number | null>(
+  //   null
+  // );
   const [isSearchOngoing, setIsSearchOngoing] = useState(false); // New state for search
   const [showCreateEventCard, setShowCreateEventCard] = useState(false); // State to show/hide create event card
 

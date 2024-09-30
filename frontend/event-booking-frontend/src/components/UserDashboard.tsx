@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React, { useEffect, useState } from "react";
+// import { AuthContext } from "../context/AuthContext";
 import eventImages from "../utils/images";
-import { EventCategory } from "../utils/eventType";
+// import { EventCategory } from "../utils/eventType";
 import {
   fetchUserBookings,
   fetchAvailableEvents,
